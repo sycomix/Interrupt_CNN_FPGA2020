@@ -1,0 +1,9 @@
+Multi-robot exploration (MR-Explore), which provides the location and map, is the basic task of many multi-robot applications. 
+The feature-point extraction (FE) and the place recognition (PR) are two key modules in MR-Explore.
+The accuracy of both modules can benifit from Convolutional Neural Network (CNN).
+Previous CNN accelerators on FPGA focus on promoting the performance of a single neural network, lacking multi-task supporting.
+Researchers on robot usually run servel CNN tasks, such as FE and PR, simultaneously.
+The unsupportability of multi-task of CNN accelerator makes it difficult for researchers on robot to use embedded FPGA.
+
+We propose a \textit{MU}lti-\textit{RO}bot \textit{EX}ploration \textit{E}ngine (MUROEXE) to deploy the MR-Explore on embeded FPGA. A multi-task CNN accelerator is proposed based on Virtual Instrcution Interruption. Besides the CNN backbone, the post-precessing for CNN-based FE and PR is also computation consuming. 
+The RTL/HLS modules to accelerate the post-precessing are also included in MUROEXE. Experiments shows that MUROEXE supports multi-thead scheduling with neglectable performance reduction (??\%). MUROEXE enables embedded FPGA (Xilinx ZU9) executing MA-Explore in real time (30 fps).
