@@ -17,4 +17,4 @@ Previous works use CNN to extract feature-points \cite{detone2018superpoint, sim
 	\label{fig:maexp}
 \end{figure}
 
-\Cref{fig:maexp} illustrates the computation modules in MR-Explore. Feature-point extraction (\textcircled{1}) and visual odometry (VO, \textcircled{3}) should be executed for each input frame, and should be finished before next frame.
+\Cref{fig:maexp} illustrates the computation modules in MR-Explore. Feature-point extraction (\textcircled{1}) and visual odometry (VO, \textcircled{3}) should be executed for each input frame, and should be finished before next frame. Place Recognition (PR, \textcircled{2}) generates representation code for some key frames, and sends the representation code to other robots. When the  representation codes from different robots are matched, optimizaion (\textcircled{7}) can map merging ((\textcircled{8})) are executed to merge the trajectories and maps. \textcircled{4}\textcircled{5}\textcircled{6} are for decision and navigation based on the merged maps. 
