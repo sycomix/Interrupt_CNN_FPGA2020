@@ -17,14 +17,6 @@ Previous works use CNN to extract feature-points \cite{detone2018superpoint, sim
 	\label{fig:maexp}
 \end{figure}
 
-\begin{figure*}[t]
-	\centering
-	\includegraphics[width=0.89\linewidth]{fig/overalltime.eps}
-    \caption{
-    The overall timeline of MA-Explore.
-    }
-	\label{fig:overalltime}
-\end{figure*}
 
 \Cref{fig:maexp} illustrates the computation modules in MR-Explore. Feature-point extraction (\textcircled{1}) and visual odometry (VO, \textcircled{3}) should be executed for each input frame, and should be finished before next frame. 
 Place Recognition (PR, \textcircled{2}) generates representation code for some key frames, and sends the representation code to other robots. 
@@ -33,7 +25,20 @@ The Feature-point extraction (\textcircled{1}) and  Place Recognition (\textcirc
 Besides these two modules, some more CNN-based methods, such as semantic segmentation \cite{long2015fully} and object detection \cite{ren2015faster}, can also be introduced to embedded moving robots for better accuracy.
 Even if only FE and PR are implemented in CNN, the computational complexity reaches 1 TOP/s , which poses a challenge for embedded systems.
 
-To accelerate CNN on FPGA, some previous works design frameworks to generate a specific hardware architecture for a target CNN, based on  RTL \cite{li_high_2016} or HLS \cite{lu_evaluating_2017}. These works need to reconfigure the FPGA when running another CNN, and do not support fast switching between different CNNs. Some other works design instruction-driven accelerators \cite{yu2018instruction,qiu2016going}, making fast switching possible by providing different instruction sequences. However, previous instruction-driven CNN accelerators need to schedule the entire CNN, which can not automatically schedule two or more tasks simultaneously. The unsupportability of multi-task of CNN accelerator makes it difficult for researchers on robot to use embedded FPGA.
+
+\begin{figure*}[t]
+    % \flushleft
+    \centering
+	\includegraphics[width=0.7\textwidth]{fig/overalltime.eps} 	
+    \caption{
+    The overall timeline of MA-Explore.
+    }
+	\label{fig:overalltime}
+\end{figure*}
+
+
+In recent years, FPGA is becoming a promising solution for algorithm acceleration. Previous works design CNN accelerators on FPGA \cite{yu2018instruction,li_high_2016,qiu2016going,lu_evaluating_2017}. With the help of network quantization and data reuse, CNN accelerators on embedded FPGA reaches 3TOP/s \cite{lu_evaluating_2017}. However, previous CNN accelerators are designed and optimized for speeding up a specific CNN. They can not automatically schedule two or more tasks simultaneously. 
+The unsupportability of multi-task of CNN accelerator makes it difficult for researchers on robot to use the embedded FPGA.
 
 
 
