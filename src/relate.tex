@@ -6,7 +6,7 @@ Mur-Artal \cite{Mur-Artal:2017281} proposes a popular open-source SLAM system, O
 Simo-Serra \cite{simo2015discriminative} proposes a CNN-based descriptor generator that does not perform any feature-point detection. 
 DeTone \cite{detone2018superpoint} presents a fully CNN-based feature-point extraction method that implements feature-point detection and descriptors generation using one CNN network.
 
-??shenchaoyang
+Before CNN was introduced into place recognition, BoW \cite{small_1} models relying on hand-crafted representation attract most attention. The accuracy of BoW-based methods is strongly influenced by the size of codebooks. Larger codebooks(~1M) \cite{large_1, large_2} can compete with CNN-based methods in accuracy, but they take up huge storage space and cannot be used on SoC systems. Smaller codebooks\cite{small_1, small_2} require less space but get worse result. In contrast to traditional methods, CNN-based methods not only perform well but also generate compact features. GeM \cite{radenovic2018fine} outperforms other state-of-art methods like NetVLAD \cite{arandjelovic2016netvlad} and is used in this research.
 
 \subsection{ FPGA accelerators for robot }
 
@@ -17,6 +17,6 @@ Fang \cite{fang2017fpga} directly implements ORB on FPGA using HLS. Liu \cite{li
 Some other works design architectures for the entire robot system. Hero \cite{shi2018hero} is a framework for navigation and laser-based SLAM and cannot support visual-based SLAM, which is much more lightweighted and cheaper. These specific architectures only support a norrow field of applications. 
 Li \cite{li2019879gops} introduces CNN accelerators in robot hardware architecture, making it possible to support future evolution of algorithms. However, the CNN accelerator in \cite{li2019879gops} is only used for feature-point extraction.
 
-\subsection{ Scheduling of CNN accelerators }
+\subsection{ Scheduling mode of CNN accelerators }
 
 To accelerate CNN on FPGA, some previous works design frameworks to generate a specific hardware architecture for a target CNN, based on  RTL \cite{li_high_2016} or HLS \cite{lu_evaluating_2017}. These works need to reconfigure the FPGA when running another CNN, and do not support fast switching between different CNNs. Some other works design instruction-driven accelerators \cite{yu2018instruction,qiu2016going}, making fast switching possible by providing different instruction sequences. However, previous instruction-driven CNN accelerators need to schedule the entire CNN, and can not automatically schedule two or more tasks simultaneously. The unsupportability of multi-task of CNN accelerator makes it difficult for researchers on robot to use the embedded FPGA.
