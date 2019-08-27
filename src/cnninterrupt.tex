@@ -1,23 +1,32 @@
 \label{sec:cnninterrupt}
-The idea of interruption is introduced for dynamic multi-thread scheduling. This section details the implementation of our \textbf{Virtual Instrcution Interruption}. \Cref{fig:interDPR} illustrates the idea of interruption to full utilize the hardware resources.
+% The idea of interruption is introduced for dynamic multi-thread scheduling. This section details the implementation of our \textbf{Virtual Instrcution Interruption}. \Cref{fig:interDPR} illustrates the idea of interruption to full utilize the hardware resources.
+
+In this section, accelerator interruption is proposed and implemented for multi-task scheduling.
 
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.99\linewidth]{fig/interDPR.eps}
-	\caption{Interruption to solve the hardware resources conflicts.  When a high-priority task (VO) is started before the low-priority task (PR) is completed, the CNN accelerator backupes the status of PR to memory, and processes the VO task. When the high-priority task is completed, the low-priority task resumes and continues.
+	\caption{Interruption to solve the hardware resources conflicts.  When a high-priority task (FE) is started before the low-priority task (PR) is completed, the CNN accelerator backupes the status of PR to memory, and processes the FE task. When the high-priority task is completed, the low-priority task resumes and continues.
     }
 	\label{fig:interDPR}
 \end{figure}
 
-\subsection{How To Interrupt: Virtual Instruction}
-\label{sec:howinter}
+\subsection{Accelerator Interruption}
 
 In order to support multi-thread scheduling, interruption has been introduced in CPU for decades. In CPU, when a high-priority task requires a interruption, the hardware or the interrupt handler software would backup the registers to main memory, and after the high-priority task, the backed-up registers will be recovered to CPU hardware. This CPU-like interruption can switch the between tasks with low latency.
 
+If the CNN accelerator support interruption, it can run two all more CNN modules at the same time. \Cref{fig:interDPR} illustrates the idea of interruption to schedule two CNN simultaneously. In the process of running a low-priority network (PR), the software may sends execution requests for the high-priority task (FE). The interruption function enables the CNN accelerator to backup the running state of the PR task, and then execute the high-priority FE network. When the high-priority task (FE) runs out, the low-priority task (PR) is restored to the accelerator and continues to execute.
+
+With the help of interruption, the execution of the low-priority task (PR) is divided into pieces, and each piece is allocated to the time gap of high-priority networks (FE). The interrupt function multiplexes the time division of the accelerator, reduces the idle time of the accelerator, and improves the utilization of hardware resources. 
+
+\subsection{How To Interrupt: Virtual Instruction}
+\label{sec:howinter}
+
+
 However, the CPU-like interruption would back-up all the on-chip registers to main memory. In CPU, there are tens of registers, and the backed-up data is around 1 KB. In CNN accelerators, there are hundreds of KB ~ several MB on-chip cache \cite{qiu2016going, yu2018instruction}. The cost of data transfer in the CNN accelerator is much higher than that of CPU if all the on-chip cache is backed up and recovered.
 
-We propose the \textbf{Virtual Instrcution Interruption} method. The low-priority maintain the executing status itself rather than the hardware or the interrupt handler. Only the cache which is still needed in future execution will be backed up and restored.
+We propose the \textbf{Virtual Instrcution} method to enable interruption. The low-priority task maintains the executing status itself rather than the hardware or the interrupt handler, which are used in CPU. Only the cache which is still needed in future execution will be backed up and restored.
 
 The virtual instructions, which contain the back-up and recovery instructions, are generated at compiling stage, together with the normal instructions. For backup instructions, the corresponding input data and weights are still stored in DDR. There is no need to backup the input buffer and weight buffer, and only the intermediate data and the final output results are needed to be backed up. For recovery instructions, the weights and input data for future calculation, as well as the backed-up intermediate data, are needed to restored from DDR to on-chip cache.
 
@@ -31,7 +40,7 @@ There are three kinds of instruction in the a instruction-driven accelerator: LO
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.9\linewidth]{fig/normal_instr.eps}
-	\caption{The extended insrtuction set for virtual instruction interrupt }
+	\caption{The extended insrtuction set for virtual instruction }
 	\label{fig:normal_instr}
 \end{figure}
 
@@ -110,20 +119,21 @@ For Multiple Blob Save, virtual SAVE and LOAD instructions are generated after t
 
 
 
-\begin{figure*}[t]
-	\begin{minipage}[t]{0.2\linewidth}  
+\begin{figure*}[b]
+	\begin{minipage}[t]{0.49\linewidth}  
 	\centering
 	\subfigure[One Save for Single CACL/LOAD.] {\includegraphics[width=0.9\linewidth]{fig/singlesave.eps}\label{fig:singlesave}}
 	\end{minipage}
-	\begin{minipage}[t]{0.2\linewidth}  
+	\begin{minipage}[t]{0.49\linewidth}  
 	\centering  
 	\subfigure[One Save for Multiple CACL/LOAD.] {\includegraphics[width=0.9\linewidth]{fig/multisave.eps}\label{fig:multisave}} 
+
 	\end{minipage}
-	\begin{minipage}[t]{0.3\linewidth}  
+	\begin{minipage}[t]{0.49\linewidth}  
 	\centering  
 	\subfigure[Interrupt for \Cref{fig:singlesave} ] {\includegraphics[width=0.9\linewidth]{fig/intersingle.eps}\label{fig:intersinglesave}} 
 	\end{minipage}
-	\begin{minipage}[t]{0.3\linewidth}  
+	\begin{minipage}[t]{0.49\linewidth}  
 	\centering  
 	\subfigure[Interrupt for \Cref{fig:multisave}] {\includegraphics[width=0.9\linewidth]{fig/intermulti.eps}\label{fig:intermultisave}} 
 	\end{minipage}
@@ -134,6 +144,31 @@ For Multiple Blob Save, virtual SAVE and LOAD instructions are generated after t
 \end{figure*}
 
 
+
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.99\linewidth]{fig/IAU.eps}
+	\caption{Hardware Architecture of IAU. The softwares on the CPU side (PS side) communicates IAU to access the CNN accelerator. IAU records the running state of each task, such as the address to fetch instructions, the SaveID of interrupted insrtuctions. At runtime, IAU translates the input instrcution sequence with virtual instructions to a normal sequence of instructions. }
+	\label{fig:IAU}
+\end{figure}
+
 \subsection{ Instruction Arrangement Unit (IAU) }
 
-A specific hardware module called Instruction Arrangement Unit (IAU) is designed to handle the computing requirements from different tasks. The IAU monitors the interrupt states, and generates a simple instruction sequence dynamically. The decoder, controller, processing elements in the CNN accelerator do not need to know the interrupt states, and operate the instructions provided by IAU as a simple CNN.
+A specific hardware module called Instruction Arrangement Unit (IAU) is designed to handle the computing requirements from different tasks. The IAU monitors the interrupt states, and generates a simple instruction sequence dynamically. The decoder, controller, processing elements in the CNN accelerator dose not need to know the interrupt states, and simply operate the instructions provided by IAU.
+
+The hardware implementation of IAU is shouwn in \Cref{fig:IAU}, which supports four different tasks at different priorities. Task 0 has the highest priority and is not interruptible. InstrAddr records the address to fetch the instructions of corresponding task. SaveID, SaveAddr and SaveLength record the backup states when an interrupt occurs. The recrded states will modify the normal SAVE instruction to avoid duplicate output data transfer. An example of the instrcution modification will be given at 
+
+
+\subsection{Example of Viutual Instruction}
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.95\linewidth]{fig/interexample.eps}
+	\caption{ A simple example of interruption based on Virtual Instruction. }
+	\label{fig:interexample}
+\end{figure*}
+
+The exampel is based on a simpel convolutional layer, which has only one input channel and output channel. The convolution kernel size is $1 \times 1$. The shape of input and output featuremap is $ 2 \times 16 $ (\Cref{fig:interexample}(a) ). The two lines of output are calculated by two CALC\_F instrcutions, instruction 3 and 7. The addresses used in the instruction example are listed in \Cref{fig:interexample}(b). \Cref{fig:interexample}(c) is the instruction sequence from DDR with virtual instructions. \Cref{fig:interexample}(d) is the executed instructions when no interrupt occurs. When interruption occurs at the first CACL\_F, \Cref{fig:interexample}(d) illustrated the backup and recovery instrcutions (Blue) and the modified SAVE instruction (Red).
+
+% The hardware implementation of IAU is shouwn in \Cref{{fig:IAU}. There is a Status Pool which records the running states of each task. The InstrAddr is records the instruction address of each CNN
