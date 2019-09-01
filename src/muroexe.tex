@@ -29,12 +29,13 @@ To eliminate the memory copy between CPU cores and CNN accelerators, we use low-
         \State FEBackend.run()
         \EndFunction
 
-        \Function {main}{$ $}
+        \Function {Main}{$ $}
         \State {\color{gray} // Init ScratchPad Memory. Ptr is for CPU operations, Addr is for FPGA modules.}
         \State imagePtr, imageAddr = ScratchPad(FEinputsize)
         \State fmPtr, fmAddr = ScratchPad(FEfmsize)
         \State {\color{gray}// Config task0 in IAU of the accelerator (DPU).}
-        \State DPUtask = FE\_DPUinit( {\color{red} priority=0 },{\color{blue}  inoffset=imageAddr,outoffset=fmAddr } ) 
+        \State DPUtask = DPUinit({\color{red}  priority=0},{\color{blue} instraddr=FEinstrAddr, }
+        \State \qquad \qquad \qquad \quad {\color{blue} inoffset=imageAddr,outoffset=fmAddr } ) 
         \State FEBackend = FEBackendinit({\color{blue}fmAddr, fmPtr});
         \State {\color{gray}// The node subscribes the inputframe, and use the FEcallback to process each inputframe.}
         \State Subscriber = Node.subscribe( InputFrame, FEcallback);
@@ -53,10 +54,11 @@ To eliminate the memory copy between CPU cores and CNN accelerators, we use low-
         \State PRBackend.run()
         \EndFunction
 
-        \Function {main}{$ $}
+        \Function {Main}{$ $}
         \State imagePtr, imageAddr = ScratchPad(PRinputsize)
         \State fmPtr, fmAddr = ScratchPad(PRfmsize)
-        \State DPUtask = PR\_DPUinit( {\color{red} priority=1 },{\color{blue} inoffset=imageAddr,outoffset=fmAddr } ) 
+        \State DPUtask = PR\_DPUinit( {\color{red} priority=1},{\color{blue} instraddr=PRinstrAddr}, 
+        \State \qquad \qquad \qquad \quad {\color{blue} inoffset=imageAddr,outoffset=fmAddr } ) 
         \State PRBackend = PRBackendinit({\color{blue}fmAddr, fmPtr});
         \State Subscriber = Node.subscribe( InputKeyFrame, PRcallback);
         \State Subscriber.spin();
