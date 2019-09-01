@@ -3,6 +3,13 @@ In this section, the software and hardware acceleration for CNN-based Feature-po
 
 \subsection{Optimization for FE Post-Processing}
 
+\begin{figure}[t]
+    \centering  
+    \includegraphics[width=1\linewidth]{fig/superpoint.eps}
+    \caption{Optimized feature extraction method based on SuperPoint}
+    \label{fig:superpoint}
+\end{figure}
+
 As mentioned before, there are two steps in the PE method: 1) feature-point detection and 2) feature descriptors generation. 
 In SuperPoint \cite{detone2018superpoint}, there are three components in the feature-point detector, 1) Softmax to generate the confidence for each pixel, 2) Non-Maximum Suppression (NMS) to find the pixels with maximum confidence in its neighborhood, 3) Rank component to find out the first $k$ pixels with the highest confidence. 
 In the feature descriptors step, the normalization component consumes most of the computation. 
@@ -14,6 +21,7 @@ Then we design FPGA accelerators specifically for calculating softmax and normal
 \subsubsection{Softmax Optimization}
 \label{sec:softmaxopt}
 
+The flow path of our SuperPoint-based feature extraction method is shown \Cref{fig:superpoint}. 
 For feature-point detection, the 65 channels correspond to local, non-overlapping $8 \times 8$ pixel grid areas plus a background channel. 
 After a channel-wise softmax, the dustbin channel is removed, and a $\mathbb{R}^{H_c\times W_c\times64}\Rightarrow \mathbb{R}^{H\times W}$ reshaping is performed. 
 The channel-wise softmax makes the points in different grid areas have equal confidences.
