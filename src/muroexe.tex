@@ -1,5 +1,13 @@
 \label{sec:muroexe}
 
+
+\begin{figure}[t]
+	\centering
+    \includegraphics[width=0.99\linewidth]{fig/muroexe.eps}
+    \caption{ Overview of the MUROEXE framework. Each ROS node is a separate thread. The CNNs in different ROS nodes are deployed onto the interruptible accelerator. The post-processing in the ROS nodes can accelerated by the RTL/HLS modules. The hardware modules for post-processing and the CNN accelerator share data through scrachpad memory. }
+	\label{fig:muroexe}
+\end{figure}
+
 The design philosophy of MuroEXE is to use CNN as much as possible to accomplish various tasks on the robot. Because the CNN not only has advantages over traditional algorithms in accuracy, but also has uniform and regular computing mode. Therefore, a single instruction-driven CNN accelerator can speed up different tasks. The unified accelerator can reduce the use of hardware resources and make it easier to implement the robot computing system on embedded FPGA.
 
 The framework MUROEXE is proposed to make the robotics community easy to use the FPGA accelerator. As the Robot Operating System (ROS) \cite{quigley2009ros} is a popular middleware fusing different modules from different developers, MUROEXE is designed for the multi-thread scheduling method in ROS, as illustrated in \Cref{fig:muroexe}.
@@ -10,7 +18,7 @@ Each ROS node does not care about the specific execution process of the hardware
 
 To eliminate the memory copy between CPU cores and CNN accelerators, we use low-latency ScratchPad memory \cite{Banakar2002Scratchpad} to directly feed the featuremaps extracted by CNN backbones to the post-processing modules. The blue lines in  ROSExample 1,2 illustrate the usage for the ScratchPad memory. Each shared date in DDR is initialized with two handlers: 1) a pointer (Ptr) for the CPU thread and 2) the physical address for the hardware modules. 
 
-\begin{algorithm}[t]
+\begin{algorithm}[h]
     \caption{ Node for FE }
     \begin{algorithmic}[1]
         \State {\color{gray} // imagePtr, imageAddr, fmPtr, fmAddr, DPUtask, Bankendtask  is initialized by main and used in FEcallback.}
@@ -36,7 +44,7 @@ To eliminate the memory copy between CPU cores and CNN accelerators, we use low-
     \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
+\begin{algorithm}[h]
     \caption{ Node for PR }
     \begin{algorithmic}[1]
         \Function {PRcallback}{$ InputKeyFrame $}
@@ -55,10 +63,3 @@ To eliminate the memory copy between CPU cores and CNN accelerators, we use low-
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
-
-\begin{figure}[t]
-	\centering
-    \includegraphics[width=0.99\linewidth]{fig/muroexe.eps}
-    \caption{ Overview of the MUROEXE framework. Each ROS node is a separate thread. The CNNs in different ROS nodes are deployed onto the interruptible accelerator. The post-processing in the ROS nodes can accelerated by the RTL/HLS modules. The hardware modules for post-processing and the CNN accelerator share data through scrachpad memory. }
-	\label{fig:muroexe}
-\end{figure}

@@ -8,6 +8,15 @@ DeTone \cite{detone2018superpoint} presents a fully CNN-based feature-point extr
 
 Before CNN was introduced into place recognition, BoW \cite{small_1} models relying on handcrafted representation attract most of the attention. The accuracy of BoW-based methods is strongly influenced by the size of codebooks. Larger codebooks(~1M) \cite{large_1, large_2} can compete with CNN-based methods in accuracy, but they take up huge storage and communication resources. Smaller codebooks\cite{small_1, small_2} require less space but get worse results. In contrast to traditional methods, CNN-based methods not only perform well but also generate compact features. GeM \cite{radenovic2018fine} outperforms other state-of-art CNN-based place recognition methods like NetVLAD \cite{arandjelovic2016netvlad} and is used in this work.
 
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.95\linewidth]{fig/interDPR.eps}
+    \caption{Interruption to solve the hardware resources conflicts.  
+    % When a high-priority task (FE) is started before the low-priority task (PR) is completed, the CNN accelerator backs up the status of PR to memory, and processes the FE task. When the high-priority task is completed, the low-priority task resumes and continues.
+    }
+	\label{fig:interDPR}
+\end{figure*}
+
 \subsection{ FPGA accelerators for robot }
 
 The feature-point extraction (FE) operation is the basic element of a visual-based robot.
@@ -16,6 +25,8 @@ SRI-SURF \cite{jia2016sri} optimizes the memory access to speed-up SURF \cite{ba
 Fang \cite{fang2017fpga} directly implements ORB on FPGA using HLS. Liu \cite{liu2019eslam} optimizes the ORB algrithm and designs a hardware for better performance.
 Some other works design architectures for the entire robot system. Hero \cite{shi2018hero} is a framework for navigation and laser-based SLAM and cannot support visual-based SLAM, which is much more lightweighted and cheaper. These specific architectures only support a narrow field of applications. 
 Li \cite{li2019879gops} introduces CNN accelerators in robot hardware architecture, making it possible to support evolution of future algorithms. However, the CNN accelerator in this work is only used for feature-point extraction, it does not use the accelerator for other applications such as place recognition.
+
+
 
 \subsection{ Scheduling mode of CNN accelerators }
 
