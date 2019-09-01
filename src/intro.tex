@@ -3,37 +3,42 @@
 In recent years, with the development of hardware and algorithm, the intelligence of a single agent has been greatly improved.
 The cooperation of agents can expand the capability of an unmanned system [??], and the multi-agent intelligent system is a promising research field.
 
-Multi-robot exploration (MR-Explore) provides location and map for each robot. It is the basic task for many multi-robot applications, such as multi-robot navigation [??] and multi-robot rescue[??].
+Multi-robot exploration (MR-Explore) \cite{corah2019communication} provides location and map for each robot . It is the basic task for many multi-robot applications, such as multi-robot navigation [??] and multi-robot rescue[??].
 
 For the keyword \textit{"robot"}, the feature-point extraction (FE) is a fundamental component for the visual odometry to estimate the 6 degrees of freedom (6-DoF) pose [??].
 For the keyword \textit{"multi"}, place recognition (PR) converts the input image into a short representation code, which is a fundamental element to produce candidate place matches between different robots [??].
 Recent works use CNN to extract feature-points \cite{detone2018superpoint, simo2015discriminative, yi2016lift} and generate the representation code \cite{arandjelovic2016netvlad, radenovic2018fine}. 
-The CNN-based feature-points from \cite{detone2018superpoint} reaches 10\%-30\% higher matching accuracy compared with the popular handcrafted extraction method, ORB \cite{Mur-Artal:2017281}.
-The accuracy of the representation code from CNN-based method \cite{radenovic2018fine} is also ??\% better than the handcrafted method [??].
+The CNN-based feature-points \cite{detone2018superpoint} reaches 10\%-30\% higher matching accuracy compared with the popular handcrafted extraction method, ORB based feature-point extraction \cite{Mur-Artal:2017281}.
+The accuracy of the representation code from another CNN-based method \cite{radenovic2018fine} is also ??\% better than the handcrafted method [??].
 
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=0.99\linewidth]{fig/maexp.eps}
     \caption{
-        The modules in MR-Explore. \textcircled{1}\textcircled{3} are basic for a single robot, should be execute every frame. \textcircled{2} generates representation code for some key frames. \textcircled{7}\textcircled{8} are only executed when representation codes are matched across robots and they are latency tolerant.  \textcircled{4}\textcircled{5}\textcircled{6} are for decision and navigation, also latency tolerant.
+        The modules in MR-Explore. \textcircled{1}\textcircled{3} are basic for a single robot, should be execute every frame. \textcircled{2} generates representation code for some key frames. \textcircled{4}\textcircled{5} are only executed when representation codes are matched across robots and they are latency tolerant.  \textcircled{6}\textcircled{7} are for decision and navigation, also latency tolerant.
     }
 	\label{fig:maexp}
 \end{figure}
 
 
-\Cref{fig:maexp} illustrates the computation modules in MR-Explore.
-Feature-point extraction (\textcircled{1}) and visual odometry (VO, \textcircled{3}) should be performed for each input frame, and should be completed before the next frame. 
-Place Recognition (PR, \textcircled{2}) generates the representation code for some key frames, and sends them to other robots. 
-When the  representation codes from different robots are matched, optimization (\textcircled{7}) and map merging ((\textcircled{8})) are performed to merge the trajectories and maps. \textcircled{4}\textcircled{5}\textcircled{6} are for decision-making and navigation based on the merged maps. 
-In this paper, CNN methods are used to realize the Feature-point Extraction (\textcircled{1}) and  Place Recognition (\textcircled{2}).
-Besides these two modules, more CNN-based methods, such as semantic segmentation \cite{long2015fully} and object detection \cite{ren2015faster}, can be introduced into embedded moving robots to achieve better accuracy.
-Even if only FE and PR are implemented in CNN, the computational complexity reaches 1 TOP/s , which poses a challenge for embedded systems.
+% \Cref{fig:maexp} illustrates the computation modules in MR-Explore.
+% Feature-point extraction (\textcircled{1}) and visual odometry (VO, \textcircled{3}) should be performed for each input frame, and should be completed before the next frame. 
+% Place Recognition (PR, \textcircled{2}) generates the representation code for some key frames, and sends them to other robots. 
+% When the  representation codes from different robots are matched, optimization (\textcircled{7}) and map merging ((\textcircled{8})) are performed to merge the trajectories and maps. \textcircled{4}\textcircled{5}\textcircled{6} are for decision-making and navigation based on the merged maps. 
+
+The multi-robot exploration ( MR-Explore ) system \cite{corah2019communication, cieslewski2018data} consists of several robots, which each executes the system illustrated in \Cref{fig:maexp}. Each input frame is fed to the Feature-point Extraction (FE, \textcircled{1}) module for VO. 
+And some of the input frames, called key frames, are also fed to the Place Recognition (PR, \textcircled{2}) module.
+PR module generates the compact image representation, which produces the candidate place recognition matches between different robots. The VO (\textcircled{3}) based on the feature-points (\textcircled{1}) produces the sparse map and the trajectory that can be used for location. The relative pose ( RelPose ) module dose the same operation as VO(\textcircled{3}) and establishes relative poses between the candidate place matches. The decentralized optimization module (DOpt, \textcircled{4}) and the global map generation module (\textcircled{5}) optimize the  intra-robot relative pose measurements from VO and the inter-robot relative pose measurements from RelPose, and merge the maps. The exploration module (\textcircled{6}) decides an unexplored goal point for each robots to move based on the merged map and the estimated location. The navigation module (\textcircled{7}) navigates each robot to the goal point, including path planning and obstacle avoidance.
+
+In this paper, we optimize the scheduling of PR(\textcircled{2}) and the VO (\textcircled{3}) based on the feature-points (\textcircled{1}) across the CPU side (processing system, PS) and FPGA side (programmable logic, PL) on Xilinx MPSoC \cite{MPSoC}. CNN methods are used to realize the Feature-point Extraction (\textcircled{1}) and  Place Recognition (\textcircled{2}). 
+Besides these two modules, more CNN-based methods, such as semantic segmentation \cite{long2015fully} and object detection \cite{ren2015faster}, can be introduced into robots to achieve better accuracy.
+Even if only FE and PR are implemented in CNN, the computational complexity reaches 1 TOP/s , which poses a challenge to the real-time performance of embedded systems.
 
 
 \begin{figure*}[t]
     % \flushleft
     \centering
-	\includegraphics[width=0.95\textwidth]{fig/overalltime.eps} 	
+	\includegraphics[width=0.99\textwidth]{fig/overalltime.eps} 	
     \caption{
     The overall timeline of MA-Explore.
     }
@@ -63,12 +68,13 @@ Therefore, the FPGA accelerator should be scheduled dynamically to support irreg
 
 \textbf{Scheduling by priority:} Each module has different priority. The control and perception tasks usually have higher priorities, while the priorities of long-term decision and optimization are lower \cite{RamsauerKLM17}. The critical tasks need to be arranged first on FPGA accelerators.
 
-Besides the CNN backbone, the post-processing of the CNN-based methods, including normalization, softmax, rank, etc., is also computation consuming. As illustrated in \Cref{fig:overalltime}, the execution time of post-processing on embedded CPU (~100ms) exceeds that of CNN backbone on the accelerator (30ms), which becomes the bottleneck of the system.
+Besides the CNN backbone, the post-processing of the CNN-based methods, including normalization, softmax, rank, etc., is also computation consuming. As illustrated in \Cref{fig:overalltime}, the execution time of post-processing on embedded CPU (~60ms) exceeds that of CNN backbone on the accelerator (30ms), which becomes the bottleneck of the system.
 
 
 In order to make the CNN accelerator flexible enough for robotic researchers to use, and speed up the post-processing of CNN-based method, we propose a \textit{MU}lti-\textit{RO}bot \textit{EX}ploration \textit{E}ngine ( MUROEXE ). MUROEXE can automatically deploy the MR-Explore on embedded FPGA, with following contributions:
 
-\begin{itemize}[leftmargin = 10 pt]
+\begin{itemize}
+    % \begin{itemize}[leftmargin = 10 pt]
 \item We propose a CNN-based MA-Explore framework based on FPGA. The modules in MUROEXE is designed for ROS \cite{quigley2009ros}, so that the modules can be easily used in other applications.
 \item We propose a \textbf{virtual-instruction-based} interrupt method to make the CNN accelerator support dynamic multi-thread scheduling by priority.
 \item We optimize the data flow of the post-processing operations. RTL/HLS modules are designed for the optimized post-processing.
