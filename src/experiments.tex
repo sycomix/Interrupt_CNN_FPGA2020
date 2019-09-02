@@ -82,6 +82,39 @@ DPU first calculates all channels of the output row before calculating the next 
 
 \subsection{ Place Recognition With DPU }
 
+In this section, we design experiments to evaluate the accuracy and efficiency of the PR network on DPU.
+
+\subsubsection{accuracy}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{fig/result.eps}
+    \caption{Precision-Recall curve on Citycenter dataset}
+    \label{fig:PRcurve}
+\end{figure}
+
+We test our network on Citycenter dataset \cite{citycenter} and draw the precision-recall curve. We then compare the result with another network, NetVLAD \cite{netvlad} to show our network can get better performance. We further compare results between before and after optimization and the result doesn't go down much.
+
+In figure \ref{fig:PRcurve}, it's clear that GeM netowrk run better than NetVLAD in all situations. After quantization, the accuracy goes down a bit, especially when precision is high. But our quantized network still outperforms NetVLAD in most cases.
+
+\subsubsection{efficiency}
+
+\begin{table}
+    \label{tab:gem_eff}
+    \centering 
+    \caption{runtime comparison of each operation in PR}
+    \begin{tabular}{|c|c|c|}
+				\hline
+              & gem pooling & normalization \\
+        \hline
+        CPU   &   ms &   ms \\
+        \hline
+        CPU+FPGA &   ms &   ms \\
+			  \hline
+    \end{tabular}
+  \end{table}
+
+We compare running time of each operation in GeM network and the results is shown in table \ref{tab:gem_eff}. After optimization, the total time reduces by ?\%.
 
 
 \subsection{ VO With DPU }
