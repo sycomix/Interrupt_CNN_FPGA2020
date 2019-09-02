@@ -14,19 +14,21 @@ As mentioned before, there are two steps in the PE method: 1) feature-point dete
 In SuperPoint \cite{detone2018superpoint}, there are three components in the feature-point detector, 1) Softmax to generate the confidence for each pixel, 2) Non-Maximum Suppression (NMS) to find the pixels with maximum confidence in its neighborhood, 3) Rank component to find out the first $k$ pixels with the highest confidence. 
 In the feature descriptors step, the normalization component consumes most of the computation. 
 
-The CNN of SuperPoint maps the input image $I\in \mathbb{R}^{H\times W}$ to a tensor $\mathcal{X}\in \mathbb{R}^{H_c\times W_c\times 65}$ for feature-point detection and to a tensor $\mathcal{D}\in \mathbb{R}^{H_c\times W_c\times D}$ for descriptors generation, where $H_c = H/8$ and $W_c = W/8$.
+The CNN backbone of SuperPoint maps the input image $I\in \mathbb{R}^{H\times W}$ to a tensor $\mathcal{X}\in \mathbb{R}^{H_c\times W_c\times 65}$ for feature-point detection and to a tensor $\mathcal{D}\in \mathbb{R}^{H_c\times W_c\times D}$ for descriptors generation, where $H_c = H/8$ and $W_c = W/8$.
 We optimize the software data flow of the components above, making them less computationally complex and friendly to hardware. 
+The flow path of our SuperPoint-based feature extraction method is shown \Cref{fig:superpoint}. 
 Then we design FPGA accelerators specifically for calculating softmax and normalization.
 
 \subsubsection{Softmax Optimization}
 \label{sec:softmaxopt}
 
-The flow path of our SuperPoint-based feature extraction method is shown \Cref{fig:superpoint}. 
 For feature-point detection, the 65 channels correspond to local, non-overlapping $8 \times 8$ pixel grid areas plus a background channel. 
-After a channel-wise softmax, the dustbin channel is removed, and a $\mathbb{R}^{H_c\times W_c\times64}\Rightarrow \mathbb{R}^{H\times W}$ reshaping is performed. 
+After a channel-wise softmax, the background channel is removed, and a $\mathbb{R}^{H_c\times W_c\times64}\Rightarrow \mathbb{R}^{H\times W}$ reshaping is performed. 
 The channel-wise softmax makes the points in different grid areas have equal confidences.
 The tensor of size $\mathbb{R}^{H\times W}$ corresponds to the confidences of the feature points in the input image.
-We optimize the process of softmax that we only take the maximum value of each channel for subsequent computations, which not only reduces the division operations of softmax but also simplifies the calculation of NMS and Rank.
+
+The standard softmax function is defined in \Cref{equ:softmax_o}.
+We optimize the process of softmax that we only take the maximum value of each grid area for subsequent computations, which not only reduces the division operations of softmax but also simplifies the calculation of NMS and Rank.
 We reduce the division operations and output size of softmax from $H \times W$ to $H_c \times W_c$.
 The division operation is resource consuming on FPGA platforms. 
 Our method can greatly reduce the number of divisions by $64 \times$, making it easy to accelerate softmax operation on FPGA.
@@ -39,15 +41,15 @@ Our method can greatly reduce the number of divisions by $64 \times$, making it 
     \frac{1}{\sigma (\mathbf {z} )_{i}}={\frac {\sum _{j=1}^{K}2^{z_{j}}}{2^{z_{i}}}}{\text{ for }}i=1,\dotsc ,64;
     \label{equ:softmax_hard}
 \end{equation}
-The standard softmax function is defined in \Cref{equ:softmax_o}.
+
 Since the results of the softmax function are all positive, we can calculate the reciprocal of the softmax function ($\frac{1}{\sigma (\mathbf {z} )_{i}}$) in \Cref{equ:softmax_hard} as the normalized confidence, without affecting the results of the NMS and ranking process. We quantize the output featuremap of CNN to 8-bit fixed-point number, i.e each $z_i$ in \Cref{equ:softmax_hard} is a 8-bit fixed-point number. We change the base of the power from $e$ to $2$ to make it hardware friendly. Since the divisor is a power of $2$, we can also implement division by shift operation.
 
 \Cref{fig:softmax} shows a overview of the softmax module. It consists of three parts, add tree, compare tree and divider. Softmax reads 65 numbers from a grid region at once. Add tree computes input to the power of $2$ using shift operation and calculates their sum. Compare tree reads the values of the first 64 channels and returns the maximum value and its channel number which contains position information. The divider uses the shift operation to calculate the reciprocal of confidence.
 
 \subsubsection{NMS Optimization}
 
-Non-Maximum Suppression (NMS) causes feature points to be scattered throughout the whole input image. 
-For each pixel in the original input image, NMS compares the confidence of this pixel with that of the pixels in a square neighborhood whose edge includeing $\epsilon _{ori}$ pixels. 
+Non-maximum suppression(NMS) is applied to the detection to help ensure that the feature-points are evenly distributed throughout the image. 
+For each pixel in the original input image, NMS compares the confidence of this pixel with that of the pixels in a square neighborhood whose edge including $\epsilon _{ori}$ pixels. 
 If the confidence of the target central pixel is not the maximum in its neighbors, this point will be eliminated from the valid feature-points. 
 The output of the NMS is a list of coordinates and confidences for each feature-point. 
 There are totally $H \times W$ points and the NMS does $\epsilon _{ori} ^ 2 - 1$ comparison operations for each points. 
@@ -55,7 +57,7 @@ Thus, in the original NMS method, there are totally $H \times W \times (\epsilon
 
 The softmax optimization introduced in \Cref{sec:softmaxopt} already gives the pixel with maximum confidence of each $8 \times 8$ block. Thus, we only need to compare each output pixel of softmax to the its adjacent blocks. The comparison area is a square box with an edge of $\epsilon _{opt}$ pixels. and $\epsilon _{opt} = 2\times \left \lceil (\epsilon _{ori}-1)/16 \right \rceil +1$. There are only $H_c \times W_c$ points. Thus, after NMS optimization, there are totally $H_c \times W_c \times (\epsilon _{opt} ^ 2 - 1)$ comparison operations.
 
-The $\epsilon _{ori}$ is set to 9 in the original implements SuperPoint and $\epsilon _{opt} = 2\times \left \lceil (\epsilon _{ori}-1)/16 \right \rceil +1 = 3$. So that $H_c \times W_c \times 5120 $ comparisons are done in the original NMS and we can do only $H_c \times W_c \times 8$ comparisons after optimization. The total number of comparisons is reduced by $640\times$.
+The $\epsilon _{ori}$ is set to 9 in the original implements SuperPoint, so $\epsilon _{opt} = 2\times \left \lceil (\epsilon _{ori}-1)/16 \right \rceil +1 = 3$. So that $H \times W \times 80 $ comparisons are done in the original NMS and we can do only $H_c \times W_c \times 8$ comparisons after optimization. The total number of comparisons is reduced by $640\times$.
 
 \subsubsection{Ranking Optimization}
 
@@ -69,19 +71,19 @@ There are $N_{nms}$ valid points after NMS. To sort all these $N_{nms}$ points, 
     \label{equ:csort}
 \end{equation}
 
-We create a heap of size $k$ and then look for the $k$ interesting points with the highest confidence. We do not compute the order of these $k$ points. The time complexity of the optimized ranking method is:
+We create a heap of size $k$ and then look for the $k$ feature-points with the highest confidence. We do not compute the order of these $k$ points. The time complexity of the optimized ranking method is:
 
 \begin{equation}
     C_{heap} = O(N_{nms} \cdot log(k))
     \label{equ:optsort}
 \end{equation}
 
-In our expetiments, $N_{nms} \approx 2000$ and $k = 200$. The speed comparison will be given in \Cref{sec:experiment}.
+In our expetiments, $N_{nms} \approx 2000$ and $k = 200$. The number of comparisons is reduced by $1.4\times$.
 
 \subsubsection{Normalization Optimization}
 
-The input of the descriptor head sized $\mathbb{R}^{H_c\times W_c\times D}$ is semi-dense descriptor that each $8\times8$ pixel cell has a descriptor. In the original implementation, a bicubic interpolation and normalization yields fine descriptors of size $\mathbb{R}^{H\times W\times D}$. Then, according to the result of the rank, the descriptors corresponding to the k feature points are combined into a list and output. When using maximum point softmax, each $8\times8$ pixel cell only has a potential interesting point. So we can use semi-dense descriptor as the dense descriptor of the potential interesting point and do not need bi-cubic interpolation.
+The input of the descriptor head sized $\mathbb{R}^{H_c\times W_c\times D}$ is semi-dense descriptor that each $8\times8$ pixel cell has a descriptor. In the original implementation, a bicubic interpolation and normalization yields fine descriptors of size $\mathbb{R}^{H\times W\times D}$. Then, according to the result of the rank, the descriptors corresponding to the k feature points are combined into a list and output. When using maximum point softmax, each $8\times8$ pixel cell only has a potential feature-point. So we can use semi-dense descriptor as the dense descriptor of the potential feature-point and do not need bi-cubic interpolation.
 
-The number of descriptors that need to be normalized has been reduced from $H\times W$ to $H_c\times W_c$. In addition, we L2-normalize the descriptors after sorting the interesting points, which means we only need to normalize $k$ descriptors. If we set $H=480$, $W=640$ and $k=200$, then the computational complexity of the normalization process will be reduced by $1500\times$. However, $k$ descriptors are not stored in contiguous memory space. We use a datamover to move data from discrete address spaces.
+The number of descriptors that need to be normalized has been reduced from $H\times W$ to $H_c\times W_c$. In addition, we normalize the descriptors after sorting the feature-points, which means we only need to normalize $k$ descriptors. If we set $H=480$, $W=640$ and $k=200$, then the computational complexity of the normalization process will be reduced by $1500\times$. However, $k$ descriptors are not stored in contiguous memory space. We use a datamover to move data from discrete address spaces.
 
 The architecture of normalize accelerator is illustrated in \Cref{fig:normalize}. The normalization module can read 8 numbers per clock cycle. The normalization process is divided into three stages and requires each descriptor to be read twice. In the first stage, we compute the sum of the squares of the descriptors, which takes 32 clock cycles when $D=256$. Then the reciprocal of square root of sum is computed as the normalization coefficient. In the final stage, the descriptor is read a second time and multiplied by the normalization coefficient.
