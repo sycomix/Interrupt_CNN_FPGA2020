@@ -82,8 +82,7 @@ The concept of interrupt \cite{jen1974processor} is introduced the CPU in the 19
 
 Besides the CNN backbone, the post-processing of the CNN-based methods, including normalization, softmax, rank, etc., is also computation consuming. As illustrated in \Cref{fig:overalltime}, the execution time of post-processing for FE on embedded CPU (~60ms) exceeds that of CNN backbone on the accelerator (30ms), and becomes the bottleneck of the system.
 
-To address the above challenges, we propose 
-propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) for rapid deployment of MR-Explore on FPGA, with following contributions:
+To address the above challenges, we propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) for rapid deployment of MR-Explore on FPGA, with following contributions:
 
 \begin{itemize}
     % \begin{itemize}[leftmargin = 10 pt]
@@ -92,4 +91,4 @@ propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) fo
 \item We optimize the data flow of the post-processing operations. RTL/HLS modules are designed for the optimized post-processing.
 \end{itemize}
 
-The rest of this article is organized as follows: \Cref{sec:relate} will introduce the related work. \Cref{sec:cnninterrupt} details the {virtual-instruction-based} interrupt. \Cref{sec:hardsoftcodesign} optimizes the post-processing. \Cref{sec:muroexe} introduces the MUROEXE framework with ROS. Experimental results and analysis are given in \Cref{sec:experiments}. \Cref{sec:conclusion} concludes this article.
+The rest of this article is organized as follows: \Cref{sec:relate} will introduce the related work. \Cref{sec:cnninterrupt} details the {virtual-instruction-based} interrupt. \Cref{sec:hardsoftcodesign} details the optimization of post-processing. \Cref{sec:incame} introduces the INCAME framework with ROS. Experimental results and analysis are given in \Cref{sec:experiments}. \Cref{sec:conclusion} concludes this article.

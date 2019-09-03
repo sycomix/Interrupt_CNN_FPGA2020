@@ -182,7 +182,7 @@ A specific hardware module called Instruction Arrangement Unit (IAU) is designed
 
 The hardware implementation of IAU is shown in \Cref{fig:IAU}, which supports four different tasks at different priorities. Task 0 has the highest priority and is uninterruptible. 
 
-InstrAddr records the address to fetch the instructions of the corresponding task. The InputOffset and the OutputOffset are configured by the software, which indicate base address offsets of the input and output data. With the configuration of the offsets, low-latency ScratchPad memory \cite{Banakar2002Scratchpad} can be used for directly data sharing between CPU cores and accelerators. The data sharing with ScratchPad \cite{Banakar2002Scratchpad} is introduced in \Cref{sec:muroexe}.
+InstrAddr records the address to fetch the instructions of the corresponding task. The InputOffset and the OutputOffset are configured by the software, which indicate base address offsets of the input and output data. With the configuration of the offsets, low-latency ScratchPad memory \cite{Banakar2002Scratchpad} can be used for directly data sharing between CPU cores and accelerators. The data sharing with ScratchPad \cite{Banakar2002Scratchpad} is introduced in \Cref{sec:incame}.
 
 
 SaveID, SaveAddr, and SaveLength record the backup status at the time of interruption. 
