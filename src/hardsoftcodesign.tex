@@ -23,6 +23,13 @@ Then we design FPGA accelerators specifically for calculating softmax and normal
 \subsubsection{Softmax Optimization}
 \label{sec:softmaxopt}
 
+\begin{figure}[t]
+    \centering  
+    \includegraphics[width=1\linewidth]{fig/FEaccelerator.eps}
+    \caption{Hardware Architecture of FE Accelerators}
+    \label{fig:FEaccelerator}
+\end{figure}
+
 For feature-point detection, the 65 channels correspond to local, non-overlapping $8 \times 8$ pixel grid areas plus a background channel. 
 After a channel-wise softmax, the background channel is removed, and a $\mathbb{R}^{H_c\times W_c\times64}\Rightarrow \mathbb{R}^{H\times W}$ reshaping is performed. 
 The channel-wise softmax makes the points in different grid areas have equal confidences.
@@ -45,7 +52,7 @@ Our method can greatly reduce the number of divisions by $64 \times$, making it 
 
 Since the results of the softmax function are all positive, we can calculate the reciprocal of the softmax function ($\frac{1}{\sigma (\mathbf {z} )_{i}}$) in \Cref{equ:softmax_hard} as the normalized confidence, without affecting the results of the NMS and ranking process. We quantize the output featuremap of CNN to 8-bit fixed-point number, i.e each $z_i$ in \Cref{equ:softmax_hard} is a 8-bit fixed-point number. We change the base of the power from $e$ to $2$ to make it hardware friendly. Since the divisor is a power of $2$, we can also implement division by shift operation.
 
-\Cref{fig:softmax} shows a overview of the softmax module. It consists of three parts, add tree, compare tree and divider. Softmax reads 65 numbers from a grid region at once. Add tree computes input to the power of $2$ using shift operation and calculates their sum. Compare tree reads the values of the first 64 channels and returns the maximum value and its channel number which contains position information. The divider uses the shift operation to calculate the reciprocal of confidence.
+\Cref{fig:FEaccelerator}(a) shows a overview of the softmax module. It consists of three parts, add tree, compare tree and divider. Softmax reads 65 numbers from a grid region at once. Add tree computes input to the power of $2$ using shift operation and calculates their sum. Compare tree reads the values of the first 64 channels and returns the maximum value and its channel number which contains position information. The divider uses the shift operation to calculate the reciprocal of confidence.
 
 \subsubsection{NMS Optimization}
 
@@ -87,7 +94,7 @@ The input of the descriptor head sized $\mathbb{R}^{H_c\times W_c\times D}$ is s
 
 The number of descriptors that need to be normalized has been reduced from $H\times W$ to $H_c\times W_c$. In addition, we normalize the descriptors after sorting the feature-points, which means we only need to normalize $k$ descriptors. If we set $H=480$, $W=640$ and $k=200$, then the computational complexity of the normalization process will be reduced by $1500\times$. However, $k$ descriptors are not stored in contiguous memory space. We use a datamover to move data from discrete address spaces.
 
-The architecture of normalize accelerator is illustrated in \Cref{fig:normalize}. The normalization module can read 8 numbers per clock cycle. The normalization process is divided into three stages and requires each descriptor to be read twice. In the first stage, we compute the sum of the squares of the descriptors, which takes 32 clock cycles when $D=256$. Then the reciprocal of square root of sum is computed as the normalization coefficient. In the final stage, the descriptor is read a second time and multiplied by the normalization coefficient.
+The architecture of normalize accelerator is illustrated in \Cref{fig:FEaccelerator}(b). The normalization module can read 8 numbers per clock cycle. The normalization process is divided into three stages and requires each descriptor to be read twice. In the first stage, we compute the sum of the squares of the descriptors, which takes 32 clock cycles when $D=256$. Then the reciprocal of square root of sum is computed as the normalization coefficient. In the final stage, the descriptor is read a second time and multiplied by the normalization coefficient.
 
 \subsection{Optimization for PR Post-Processing}
 
