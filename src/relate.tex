@@ -12,7 +12,7 @@
 
 \subsection{ CNN-based FE and PR }
 
-\textbf{Feature-point extraction:} Previous feature-point extraction works usually consist of two parts: 1) feature-point detection and 2) descriptors generation.
+\textbf{\quad \ Feature-point extraction:} Previous feature-point extraction works usually consist of two parts: 1) feature-point detection and 2) descriptors generation.
 Mur-Artal \cite{Mur-Artal:2017281} proposes a popular open-source SLAM system, ORB-SLAM. ORB-SLAM uses the oFAST (OrientedFeature from Accelerated Segment Test \cite{biadgie2014feature}) detector to locate the feature-points and the BRIEF (Binary Robust Independent ElementaryFeatures \cite{calonder2010brief}) to generate the descriptor for each feature-point in binary strings. 
 Simo-Serra \cite{simo2015discriminative} proposes a CNN-based descriptor generator that does not perform any feature-point detection. 
 DeTone \cite{detone2018superpoint} presents a fully CNN-based feature-point extraction method, SuperPoint, that implements feature-point detection and descriptors generation using one CNN network. SuperPoint\cite{detone2018superpoint} reaches 10\%-30\% higher matching accuracy compared the ORB based feature-point extraction \cite{Mur-Artal:2017281}.
@@ -27,10 +27,14 @@ Some previous works design hardware architectures for FE.
 SRI-SURF \cite{jia2016sri} optimizes the memory access to speed-up SURF \cite{bay2006surf} feature-point extraction method. 
 Fang \cite{fang2017fpga} directly implements ORB on FPGA using HLS. Liu \cite{liu2019eslam} optimizes the ORB algrithm and designs a hardware for better performance.
 Some other works design architectures for the entire robot system. Hero \cite{shi2018hero} is a framework for navigation and laser-based SLAM and cannot support visual-based SLAM, which is much more lightweighted and cheaper. These specific architectures only support a narrow field of applications. 
-Li \cite{li2019879gops} introduces CNN accelerators in robot hardware architecture, making it possible to support evolution of future algorithms. However, the CNN accelerator in this work is only used for feature-point extraction, it does not use the accelerator for other applications such as place recognition.
+Li \cite{li2019879gops} introduces CNN accelerators in robot hardware architecture, making it possible to support evolution of future algorithms. 
+However, the CNN accelerator in this work\cite{li2019879gops} is only used for feature-point extraction, and the accelerator is not to support different tasks at the same time.
 
 
 
 \subsection{ Scheduling mode of CNN accelerators }
 
-To accelerate CNN on FPGA, some previous works design frameworks to generate a specific hardware architecture for a target CNN, based on  RTL \cite{li_high_2016} or HLS \cite{lu_evaluating_2017}. These works need to reconfigure the FPGA while running another CNN, and do not support fast switching between different CNNs. Some other works design instruction-driven accelerators \cite{yu2018instruction,qiu2016going}, making rapid switching possible by providing different instruction sequences. However, previous instruction-driven CNN accelerators need to schedule the entire CNN, and can not automatically schedule two or more tasks simultaneously. The inability of CNN accelerators to support multi-task makes it difficult for robotics researchers to use embedded FPGA.
+To accelerate CNN on FPGA, some previous works design frameworks to generate a specific hardware architecture for a target CNN, based on  RTL \cite{li_high_2016} or HLS \cite{lu_evaluating_2017}. These works need to reconfigure the FPGA to switch between different CNN models with large switching overhead. Some other works design instruction-driven accelerators \cite{yu2018instruction,qiu2016going,guo2017angel}, making rapid switching possible by providing different instruction sequences. 
+However, the CNN tasks on previous instruction-driven CNN accelerators are not interruptible, resulting in the latency-sensitive high-priority task waiting for the low-priority task to finish. This inability of CNN accelerators to support multi-task makes it difficult for robotics researchers to use embedded FPGA.
+
+% However, previous instruction-driven CNN accelerators need to schedule the entire CNN, and can not automatically schedule two or more tasks simultaneously. The inability of CNN accelerators to support multi-task makes it difficult for robotics researchers to use embedded FPGA.
