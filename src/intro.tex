@@ -63,7 +63,7 @@ The threads of FE and PR may need to process CNN at the same time,  and the simu
 
 In order to facilitate robotic researchers to run different CNN tasks simultaneously on the FPGA accelerators, the accelerator should support the following three features:
 
-\textbf{Multi-thread:} Different components in a robot are from different developers. The Robot Operating System (ROS) \cite{quigley2009ros} is a popular middleware fusing these independent components. Each component in ROS is considered as an independent thread. Different threads should have independent access to the FPGA accelerator without knowing the status of other threads.
+\textbf{Multi-thread:} Different components in a robot are from different developers. Thus, Robot Operating System (ROS) \cite{quigley2009ros} is proposed to as a middleware to fuse these independent components, and is widely used by robotics researchers. Each component in ROS is considered as an independent thread. Different threads should have independent access to the FPGA accelerator without knowing the status of other threads.
 
 
 % A robot contains many components including perception, decision-making, and control. 

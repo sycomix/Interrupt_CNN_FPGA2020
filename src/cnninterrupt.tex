@@ -13,7 +13,7 @@
 	\multirow{2}[4]{*}{LOAD} & LOAD\_W & Load weights/bias from DDR to on chip weight buffer. & Off-chip Addr & Weights-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
 	\cline{2-9}\multicolumn{1}{|c|}{} & LOAD\_D & Load input data from DDR to on-chip data buffer. & Off-chip Addr & Data-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
 	\hline
-	\multirow{2}[4]{*}{CALC} & CALC\_I & Calculate intermediate results for some output channels from partial  input channels. & Input  Data Addr & Intermediate Data Addr & Weight Addr & Calc Size & Previous final results / Intemediate data  & Weight / Inputdata /  intemediate data \bigstrut\\
+	\multirow{2}[4]{*}{CALC} & CALC\_I & Calculate intermediate results (from partial input channels) for some output channels from partial  input channels. & Input  Data Addr & Intermediate Data Addr & Weight Addr & Calc Size & Previous final results / Intemediate data  & Weight / Inputdata /  intemediate data \bigstrut\\
 	\cline{2-9}\multicolumn{1}{|c|}{} & CALC\_F & Calculate the results for some output channels from all input channels. The pooling, bias-adding and elementwise operations are operated in this instructions. & Input  Data Addr & Output  Data Addr & Weight Addr & Calc Size & Finial results & Weight / Inputdata \bigstrut\\
 	\hline
 	SAVE  & SAVE  & Save the results from on-chip data buffer to DDR. & Off-chip Addr & Data-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
@@ -72,7 +72,9 @@ There are three categories of instruction in the instruction-driven accelerator:
 	\label{fig:normal_instr}
 \end{figure}
 
+Each CALC instruction, including CALC\_I and CALC\_F processes the convolution from input feature of the hardware input parallelism ($Para_{in}$) to the output feature of the hardware output parallelism ($ Para_{out}$), as illustrated in \Cref{fig:calschedule}(a). The convolution of the last input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions to generate the output channels, as well as the LOAD instructions for corresponding input featuremaps and weights are considered as a \textbf{CalcBlob}.
 
+The backup/recovery data transfer for interrupting each instruction is analyzed as follows:
 
 \subsubsection{LOAD\_W / LOAD\_D }
 When an interruption occurs at LOAD, the newly loaded data would immediately be flushed when running the high-level CNN, leading to bandwidth waste.
@@ -107,7 +109,7 @@ The state records and modifications to normal SAVE instruction will be introduce
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.99\linewidth]{fig/IAU.eps}
+	\includegraphics[width=0.99\linewidth]{fig/iau.eps}
 	\caption{Hardware Architecture of IAU. The software on the CPU side (PS side) communicates IAU to access the CNN accelerator. IAU records the running state of each task, such as the address to fetch instructions, the SaveID of interrupted instructions. At runtime, IAU translates the input instruction sequence with virtual instructions to a normal sequence of instructions. }
 	\label{fig:IAU}
 \end{figure}
@@ -115,7 +117,7 @@ The state records and modifications to normal SAVE instruction will be introduce
 \subsubsection{SAVE}
 When an interrupt occurs at SAVE, there is no need to back up any data. The overhead of this interrupt is only to transfer input data and weights from DDR to the on-chip cache.
 
-We want to minimize the cost of interrupt. We make the low-priority CNN interruptible after the SAVE or CACL\_F instructions. This method only introduces extra data transfer to recovery input data and weights without any excess backup data transfer.
+We want to minimize the cost of interrupt. We make the low-priority CNN interruptible after the SAVE or CALC\_F instructions. This method only introduces extra data transfer to recovery input data and weights without any excess backup data transfer.
 
 Additional virtual instructions also take up bandwidth at instruction fetching phase, even if they are not executed. The instruction number of CALC\_I is tens of times of that of SAVE/CALC\_F. If the network can be interrupted after each CALC\_I, the rapidly increasing virtual instructions would reduce the system performance.
 
@@ -177,6 +179,6 @@ An example of the instruction modification will be given at \Cref{sec:exampleVir
 
 
 The example is based on a straightforward convolutional layer, which has only one input channel and one output channel. 
-The convolution kernel size is $1 \times 1$. The shape of the input and output featuremaps is $ 2 \times 16 $ (\Cref{fig:interexample}(a) ). The two lines of output are calculated by two CALC\_F instructions ( instruction 3 and 7). The addresses used in the instruction example are listed in \Cref{fig:interexample}(b). \Cref{fig:interexample}(c) is the instruction sequence from DDR with virtual instructions. \Cref{fig:interexample}(d) is the executed instructions without interrupt. When an interrupt occurs at the first CACL\_F, \Cref{fig:interexample}(d) illustrated the backup and recovery instructions (Blue) and the modified SAVE instruction (Red).
+The convolution kernel size is $1 \times 1$. The shape of the input and output featuremaps is $ 2 \times 16 $ (\Cref{fig:interexample}(a) ). The two lines of output are calculated by two CALC\_F instructions ( instruction 3 and 7). The addresses used in the instruction example are listed in \Cref{fig:interexample}(b). \Cref{fig:interexample}(c) is the instruction sequence from DDR with virtual instructions. \Cref{fig:interexample}(d) is the executed instructions without interrupt. When an interrupt occurs at the first CALC\_F, \Cref{fig:interexample}(e) illustrated the backup and recovery instructions (Blue) and the modified SAVE instruction (Red).
 
 % The hardware implementation of IAU is shouwn in \Cref{{fig:IAU}. There is a Status Pool which records the running states of each task. The InstrAddr is records the instruction address of each CNN
