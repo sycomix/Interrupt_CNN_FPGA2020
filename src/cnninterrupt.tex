@@ -72,7 +72,7 @@ There are three categories of instruction in the instruction-driven accelerator:
 	\label{fig:normal_instr}
 \end{figure}
 
-Each CALC instruction, including CALC\_I and CALC\_F processes the convolution from input feature of the hardware input parallelism ($Para_{in}$) to the output feature of the hardware output parallelism ($ Para_{out}$), as illustrated in \Cref{fig:calschedule}(a). The convolution of the last input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions to generate the output channels, as well as the LOAD instructions for corresponding input featuremaps and weights are considered as a \textbf{CalcBlob}.
+Each CALC instruction, including CALC\_I and CALC\_F processes the convolution from input feature of the hardware input parallelism ($Para_{in}$) to the output feature of the hardware output parallelism ($ Para_{out}$), as illustrated in \Cref{fig:singlesave}(a). The convolution of the last input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions to generate the output channels, as well as the LOAD instructions for corresponding input featuremaps and weights are considered as a \textbf{CalcBlob}.
 
 The backup/recovery data transfer for interrupting each instruction is analyzed as follows:
 
@@ -104,7 +104,7 @@ The state records and modifications to normal SAVE instruction will be introduce
     \caption{
 		Scheduling Illustration
     }
-	\label{fig:dslamresult}
+	\label{fig:singlesave}
 \end{figure*}
 
 \begin{figure}[t]
@@ -147,11 +147,11 @@ Three values can be set to Virtual Filed:
 SaveID links LAOD/CALC instructions to the corresponding SAVE instruction. SaveID of each not-virtual SAVE instruction differs. If the generated outputs of the LOAD/CALC are stored to DDR by a SAVE instruction, the LOAD/CALC instructions have the same SaveID as the SAVE instruction.
 
 We consider all the LOAD/CALC instructions corresponding to one CALC\_F instruction as a \textbf{CalcBlob}. Each CalcBlob has one CALC\_F instruction, and ends up with this CALC\_F instruction. The SaveID for a CalcBlob is the same as its CALC\_F instruction.
-One SAVE instruction may correspond to one CalcBlob ( \textbf{Single Blob Save}, illustrated in \Cref{fig:singlesave} ) or multiple CalcBlobs (\textbf{Multiple Blob Save}, illustrated in \Cref{fig:multisave}).
+One SAVE instruction may correspond to one CalcBlob ( \textbf{Single Blob Save}, illustrated in \Cref{fig:singlesave}(b) ) or multiple CalcBlobs (\textbf{Multiple Blob Save}, illustrated in \Cref{fig:singlesave}(c)).
 
-For Single Blob Save, no virtual SAVE is added. The high-priority network can be started after the nomal not-virtual SAVE. The virtual LOAD instructions for data recovery are generated after the normal SAVE, and executed after the high-priority network. The execution timeline is shown in \Cref{fig:intersinglesave}.
+For Single Blob Save, no virtual SAVE is added. The high-priority network can be started after the nomal not-virtual SAVE. The virtual LOAD instructions for data recovery are generated after the normal SAVE, and executed after the high-priority network. The execution timeline is shown in \Cref{fig:singlesave}(d).
 
-For Multiple Blob Save, virtual SAVE and LOAD instructions are generated after the CALC\_F of each CalcBlob. When the interrupt request occurs during the CalcBlob, the virtual SAVE instruction will be executed before the start of the high-priority network. Virtual LOAD instructions for data recovery are executed after the high-priority network. The subsequent nomal not-virtual SAVE instruction with the same SaveID as the CalcBlob will be modified to avoid duplicate output data transfer. The execution timeline is shown in \Cref{fig:intermultisave}.
+For Multiple Blob Save, virtual SAVE and LOAD instructions are generated after the CALC\_F of each CalcBlob. When the interrupt request occurs during the CalcBlob, the virtual SAVE instruction will be executed before the start of the high-priority network. Virtual LOAD instructions for data recovery are executed after the high-priority network. The subsequent nomal not-virtual SAVE instruction with the same SaveID as the CalcBlob will be modified to avoid duplicate output data transfer. The execution timeline is shown in \Cref{fig:singlesave}(e).
 
 
 
