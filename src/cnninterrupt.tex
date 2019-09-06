@@ -34,6 +34,9 @@
 
 In this section, we introduce the concept of interrupt to CNN accelerator to support multi-task execution.
 
+\subsection{ Instruction Driven Accelerator }
+
+
 \subsection{Accelerator Interrupt}
 
 In order to support multi-task scheduling, interrupt is introduced in CPU. 
@@ -48,10 +51,15 @@ Accelerator interrupt multiplexes the time division of the accelerator, reduces 
 \subsection{How To Interrupt: Virtual Instruction}
 \label{sec:howinter}
 
+\subsubsection{CPU-Like}
+
+\subsubsection{Layer by Layer}
+
+\subsubsection{Virtual Instruction}
 
 However, the CPU-like interrupt would back up all the on-chip registers to DDR. In CPU, there are tens of registers, and the backed-up data is around 1 KB. In CNN accelerators, there are hundreds of KB ~ several MB on-chip cache \cite{qiu2016going, yu2018instruction}. If all the on-chip cache is backed-up and recovered, the cost of data transfer in the CNN accelerator is much higher than that of CPU.
 
-We propose the \textbf{virtual-instruction-base} method to enable interrupt. The low-priority task maintains the executing status itself, rather than the hardware or the interrupt handler used in CPU. Only the cache which is still needed in future execution will be backed-up and restored.
+We propose the \textbf{virtual-instruction-based} method to enable interrupt. The low-priority task maintains the executing status itself, rather than the hardware or the interrupt handler used in CPU. Only the cache which is still needed in future execution will be backed-up and restored.
 
 The virtual instructions, which contain the backup and recovery instructions, are generated in the compilation phase, together with the normal instructions. 
 For backup instructions, the corresponding input data and weights are still stored in DDR. 
