@@ -1,6 +1,9 @@
 \label{sec:incame}
 
 
+The design philosophy of INCAME is to use CNN as much as possible to accomplish various tasks on the robot. Because the CNN not only has advantages over traditional algorithms in accuracy, but also has uniform and regular computing mode. Therefore, a single instruction-driven CNN accelerator can speed up different tasks. The unified accelerator can reduce the use of hardware resources and make it easier to implement the robot computing system on embedded FPGA.
+
+
 \begin{figure}[t]
 	\centering
     \includegraphics[width=0.99\linewidth]{fig/incame.eps}
@@ -8,13 +11,13 @@
 	\label{fig:incame}
 \end{figure}
 
-The design philosophy of INCAME is to use CNN as much as possible to accomplish various tasks on the robot. Because the CNN not only has advantages over traditional algorithms in accuracy, but also has uniform and regular computing mode. Therefore, a single instruction-driven CNN accelerator can speed up different tasks. The unified accelerator can reduce the use of hardware resources and make it easier to implement the robot computing system on embedded FPGA.
-
 The framework INCAME is proposed to make the robotics community easy to use the FPGA accelerator. As the Robot Operating System (ROS) \cite{quigley2009ros} is a popular middleware fusing different modules from different developers, INCAME is designed for the multi-thread scheduling method in ROS, as illustrated in \Cref{fig:incame}.
 
 In ROS, each function module is implemented as a node, and different nodes are executed in different CPU threads with asynchronous data sharing. Callback functions are used to process input data in ROS nodes. Once a ROS node subscribes to a data, and each time new data arrives, the corresponding callback function is executed.
 
 Each ROS node does not care about the specific execution process of the hardware accelerator (we name the accelerator DNN Processing Unit, DPU). The software only needs to configure the priority of different tasks in different nodes ( the red parameter, priority, in line 13 in ROSExample 1 and line 9 in ROSExample 2). The hardware will automatically schedule the tasks according to the priority.
+
+ROS is also a framework for multi-agent. Different systems with ROS can easy communicate with others.
 
 To eliminate the memory copy between CPU cores and CNN accelerators, we use low-latency ScratchPad memory \cite{Banakar2002Scratchpad} to directly feed the featuremaps extracted by CNN backbones to the post-processing modules. The blue lines in  ROSExample 1,2 illustrate the usage for the ScratchPad memory. Each shared date in DDR is initialized with two handlers: 1) a pointer (Ptr) for the CPU thread and 2) the physical address for the hardware modules. 
 

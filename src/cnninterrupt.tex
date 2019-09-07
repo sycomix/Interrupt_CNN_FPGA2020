@@ -96,12 +96,13 @@ The latency to response the interrupt and the performance degradation of the CPU
 We propose the \textbf{virtual-instruction-based} method to enable low-latency interrupt. Different from the CPU-like interrupt, the low-priority task maintains the executing status itself. And only the on-chip cache which is still needed in future execution will be backed-up and restored. So that the data transfer is much less than that of CPU-like interrupt.
 
 To reduce the latency to response the interrupt, our virtual-instruction-based mothod is interruptible inside each layers. We add some virtual instructions ot the instruction sequence.
-The virtual instructions, which contain the backup and recovery instructions, are responsible for backing up and restoring the execution status. The accelerator can switch to a different task after the backup virtual instructions, and resume the execution by the recovery virtual instructions.
-
-By adding the virtual instructions, the CNN can interrupt anywhere, and the latency to to response the interrupt is reduced. However, there virtual instructions are only valid to handle the interrupt. So we add a field in the instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. The modifications to the instruction set will be introduced in \Cref{sec:virtualinstr}. 
+The virtual instructions, which contain the backup and recovery instructions, are responsible for backing up and restoring the execution status. 
 For backup virtual instructions, the corresponding input data and weights are still stored in DDR. 
 There is no need to back up the input buffer and weight buffer, and only the intermediate data and the final output results are needed to be backed-up. 
 For recovery virtual instructions, the weights and input data for future calculation, as well as the backed-up intermediate data, are needed to be restored from DDR to the on-chip cache.
+The accelerator can switch to a different task after the backup virtual instructions, and resume the execution by the recovery virtual instructions.
+
+By adding the virtual instructions, the CNN can interrupt anywhere, and the latency to to response the interrupt is reduced. However, there virtual instructions are only valid to handle the interrupt. So we add a field in the instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. The modifications to the instruction set will be introduced in \Cref{sec:virtualinstr}. 
 
 Virtual-instruction-based method has two potential factors that may lead to system performance degradation: 1) The extra data transfer to backup/restore execution status takes up additional bandwidth resources. 2) The instruction fetch for the virtual instructions also uses bandwidth resources, even they are skipped and discarded.
 
