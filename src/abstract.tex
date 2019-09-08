@@ -8,7 +8,7 @@ We propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME)
 INCAME proposes a virtual-instruction-based interrupt method to support multi-task on CNN accelerators.
 After accelerating  CNN backbones, the post-processing of  CNN-based components (such as PR and FE), which is also computation consuming, becomes the bottleneck of the system.
 Thus, INCAME also includes RTL/HLS hardware modules to accelerate the post-processing of the CNN-based components.
-We evaluate INCAME on Xilinx ZU9 MPSoC. The experiment results show that INCAME enables multi-task scheduling on the CNN accelerator with negligible performance reduction (??\%). With the help of multi-task, INCAME enables embedded FPGA (Xilinx ZU9) executing MA-Explore in real-time (30 fps).
+We evaluate INCAME on Xilinx ZU9 MPSoC. The experiment results show that INCAME enables multi-task scheduling on the CNN accelerator with negligible performance reduction (??\%). With the help of multi-task, INCAME enables embedded FPGA (Xilinx ZU9) executing MA-Explore in real-time (20 fps).
 % Multi-robot exploration (MR-Explore) that provides the location and maps is the basic task for many multi-robot applications. 
 % Feature-point Extraction (FE) and Place Recognition (PR) are two critical modules in MR-Explore.
 % The accuracy of both modules can benefit from Convolutional Neural Network (CNN).
