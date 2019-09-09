@@ -4,12 +4,12 @@
 The design philosophy of INCAME is to use CNN as much as possible to accomplish various tasks on the robot. Because the CNN not only has advantages over traditional algorithms in accuracy, but also has uniform and regular computing mode. Therefore, a single instruction-driven CNN accelerator can speed up different tasks. The unified accelerator can reduce the use of hardware resources and make it easier to implement the robot computing system on embedded FPGA.
 
 
-\begin{figure}[t]
+\begin{figure*}[t]
 	\centering
-    \includegraphics[width=0.99\linewidth]{fig/incame.eps}
-    \caption{ Overview of the INCAME framework. Each ROS node is a separate thread. The CNNs in different ROS nodes are deployed onto the interruptible accelerator. The post-processing in the ROS nodes can accelerated by the RTL/HLS modules. The hardware modules for post-processing and the CNN accelerator share data through scrachpad memory. }
+    \includegraphics[width=0.99\linewidth]{fig/incame.pdf}
+    \caption{ Overview of the INCAME framework.}
 	\label{fig:incame}
-\end{figure}
+\end{figure*}
 
 The framework INCAME is proposed to make the robotics community easy to use the FPGA accelerator. As the Robot Operating System (ROS) \cite{quigley2009ros} is a popular middleware fusing different modules from different developers, INCAME is designed for the multi-thread scheduling method in ROS, as illustrated in \Cref{fig:incame}.
 
