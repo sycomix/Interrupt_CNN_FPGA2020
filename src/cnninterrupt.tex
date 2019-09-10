@@ -40,7 +40,7 @@ The LOAD instruction moves input featuremaps and weights from DDR to on-chip mem
 
  Each CALC  instrcution,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism with $Para_{height}$ lines form $ Para_{in} $ input channels to $ Para_{out}$ output channels. $Para_{height}$, $ Para_{in} $ and $ Para_{out} $ are the parallelism along the height, input channel and output channel dimensions, which is constrained by the hardware.
 
- \Cref{fig:singlesave}(a) illustrates the operation of CALC instrcutions. The convolution of the last $ Para_{in} $ input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions for the same output channels, as well as the LOAD instructions for corresponding input featuremaps and weights, are considered as a \textbf{CalcBlob}.
+ \Cref{fig:singlesave}(a) illustrates the operation of CALC instrcutions. The convolution of the last $ Para_{in} $ input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions for the same output channels, as well as the LOAD instructions for corresponding input featuremaps and weights, are considered as a \textbf{CalcBlob}. In each CalcBlob, there is a LOAD\_W instruction for the correspond weights. However, as the input data can be shared across different CalcBlobs, some CalcBlobs do not have a LOAD\_D instruction. 
 
 % Each CALC  instrcution,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism.
 % Each CALC instruction, including CALC\_I and CALC\_F processes the convolution from input feature of the hardware input parallelism ($Para_{in}$) to the output feature of the hardware output parallelism ($ Para_{out}$), as illustrated in \Cref{fig:singlesave}(a). The convolution of the last input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions to generate the output channels, as well as the LOAD instructions for corresponding input featuremaps and weights are considered as a \textbf{CalcBlob}. Besides the convolution, some other operations like pooling is also represented in the CALC\_F instruction.
@@ -61,7 +61,7 @@ Accelerator interrupt multiplexes the time division of the accelerator, reduces 
 \begin{figure*}[t]
     % \flushleft
     \centering
-	\includegraphics[width=0.99\textwidth]{fig/singlesave.eps} 	
+	\includegraphics[width=0.99\textwidth]{fig/singlesave.pdf} 	
     \caption{
 		Scheduling Illustration
     }
@@ -82,17 +82,19 @@ Most accelerators are scheduling layer by layer \cite{qiu2016going,guo2017angel}
 The latency to response the interrupt and the performance degradation of the CPU-like interrupt and Layer-by-layer method will be evaluated in \Cref{sec:experiments}.
 
 \subsubsection{Virtual Instruction}
+\label{sec:vitualinter}
+We propose the \textbf{virtual-instruction-based} method to enable low-latency interrupt. Different from the CPU-like interrupt, which backup/recovery all the on-chip caches, only the on-chip cache which is still needed in future execution will be backed-up and restored. So that the data transfer is much less than that of CPU-like interrupt.
 
-We propose the \textbf{virtual-instruction-based} method to enable low-latency interrupt. Different from the CPU-like interrupt, the low-priority task maintains the executing status itself. And only the on-chip cache which is still needed in future execution will be backed-up and restored. So that the data transfer is much less than that of CPU-like interrupt.
-
-To reduce the latency to response the interrupt, our virtual-instruction-based mothod is interruptible inside each layers. We add some virtual instructions ot the instruction sequence.
+To reduce the latency to response the interrupt, our virtual-instruction-based mothod is interruptible inside each layer. We add some virtual instructions to the normal instruction sequence.
 The virtual instructions, which contain the backup and recovery instructions, are responsible for backing up and restoring the execution status. 
-For backup virtual instructions, the corresponding input data and weights are still stored in DDR. 
-There is no need to back up the input buffer and weight buffer, and only the intermediate data and the final output results are needed to be backed-up. 
-For recovery virtual instructions, the weights and input data for future calculation, as well as the backed-up intermediate data, are needed to be restored from DDR to the on-chip cache.
+
+For backup virtual instructions, the corresponding input data and weights are already stored in DDR. 
+Thus, there is no need to back up the input buffer and weight buffer. Only the intermediate data and the final output results are needed to be backed-up. 
+
+For recovery virtual instructions, the weights and input data, as well as the backed-up intermediate data, are needed to be restored from DDR to the on-chip cache.
 The accelerator can switch to a different task after the backup virtual instructions, and resume the execution by the recovery virtual instructions.
 
-By adding the virtual instructions, the CNN can interrupt anywhere, and the latency to to response the interrupt is reduced. However, there virtual instructions are only valid to handle the interrupt. So we add a field in the instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. The modifications to the instruction set will be introduced in \Cref{sec:virtualinstr}. 
+By adding the virtual instructions, the CNN can interrupt anywhere, and the latency to to response the interrupt is reduced. However, there virtual instructions are only valid when interrupt occurs. So we add a field in the origin instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. The modifications to the instruction set will be introduced in \Cref{sec:virtualinstr}. 
 
 Virtual-instruction-based method has two potential factors that may lead to system performance degradation: 1) The extra data transfer to backup/restore execution status takes up additional bandwidth resources. 2) The instruction fetch for the virtual instructions also uses bandwidth resources, even they are skipped and discarded.
 
@@ -120,22 +122,22 @@ To address the above problems of virtual-instruction-based method, \Cref{sec:whe
 % Table generated by Excel2LaTeX from sheet 'Sheet3'
 \begin{tabular}{|p{2.7em}|p{3.4em}|p{16em}|p{4.2em}|p{4.6em}|p{4.2em}|p{4.2em}||p{7em}|p{7em}|}
 	\hline
-	\multicolumn{1}{|c|}{Category} & \multicolumn{1}{c|}{Type} & \multicolumn{1}{c|}{Description} & \multicolumn{1}{c|}{Address 1} & \multicolumn{1}{c|}{Address 2} & \multicolumn{1}{c|}{Address 3} & \multicolumn{1}{c||}{Workload} & \multicolumn{1}{c|}{Backups} & \multicolumn{1}{c|}{Recovery $^1$} \bigstrut\\
+	\multicolumn{1}{|c|}{Category} & \multicolumn{1}{c|}{Type} & \multicolumn{1}{c|}{Description} & \multicolumn{1}{c|}{Address 1} & \multicolumn{1}{c|}{Address 2} & \multicolumn{1}{c|}{Address 3} & \multicolumn{1}{c||}{Workload} & \multicolumn{1}{c|}{Backups} & \multicolumn{1}{c|}{Recovery} \bigstrut\\
 	\hline
 	\multirow{2}[4]{*}{LOAD} & LOAD\_W & Load weights/bias from DDR to on chip weight buffer. & Off-chip Addr & Weights-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
 	\cline{2-9}\multicolumn{1}{|c|}{} & LOAD\_D & Load input data from DDR to on-chip data buffer. & Off-chip Addr & Data-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
 	\hline
 	\multirow{2}[4]{*}{CALC} & CALC\_I & Calculate intermediate results (from partial input channels) for some output channels from partial  input channels. & Input  Data Addr & Intermediate Data Addr & Weight Addr & Calc Size & Previous final results / Intemediate data  & Weight / Inputdata /  intemediate data \bigstrut\\
-	\cline{2-9}\multicolumn{1}{|c|}{} & CALC\_F & Calculate the results for some output channels from all input channels. The pooling, bias-adding and elementwise operations are operated in this instructions. & Input  Data Addr & Output  Data Addr & Weight Addr & Calc Size & Finial results & Weight / Inputdata \bigstrut\\
+	\cline{2-9}\multicolumn{1}{|c|}{} & CALC\_F & Calculate the results for some output channels from all input channels. The pooling, bias-adding and elementwise operations are operated in this instructions. & Input  Data Addr & Output  Data Addr & Weight Addr & Calc Size & Finial results & Inputdata \bigstrut\\
 	\hline
-	SAVE  & SAVE  & Save the results from on-chip data buffer to DDR. & Off-chip Addr & Data-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
+	SAVE  & SAVE  & Save the results from on-chip data buffer to DDR. & Off-chip Addr & Data-buffer Addr & -     & Data  Length & -     & Inputdata \bigstrut\\
 	\hline
 	\end{tabular}%
 	
 	\label{tab:instr}%
   \end{table*}%
 
-There is no need to make every instruction interruptible. We select the position to enale the interrupt to minimize the extra cost of the proposed virtual-instruction-based method. The backup/recovery data for different interrupt position at each kind of instruction are listed in the Backup/Recovery columns of \Cref{tab:instr}. The backup/recovery data transfer for interrupting each instruction is analyzed as follows:
+There is no need to make every instruction interruptible. We select the position of interrupt to minimize the extra cost of the proposed virtual-instruction-based method. The backup/recovery data for different interrupt position at each kind of instruction are listed in the Backup/Recovery columns of \Cref{tab:instr}. The backup/recovery data transfer for interrupting each instruction is analyzed as follows:
 
 \subsubsection{LOAD\_W / LOAD\_D }
 When an interruption occurs at LOAD, the newly loaded data would immediately be flushed when running the high-level CNN, leading to bandwidth waste.
@@ -145,10 +147,12 @@ When an interrupt occurs at CALC\_I, the unsaved finial results ( generated by p
 
 
 \subsubsection{CALC\_F}
-When an interrupt occurs at CALC\_F, there is no need to back up and recovery intermediate results. Although it is necessary to back up the unstored final results which are generated by previous CALC\_F, these results will be stored in DDR through the subsequent normal SAVE instruction.
+When an interrupt occurs at CALC\_F, there is no intermediate results. Although it is necessary to back up the unstored final results which are generated by previous CALC\_F, these results will be stored in DDR through the subsequent normal SAVE instruction.
 If the accelerator can record the interrupt status, we can modify the address and workload when executing subsequent normal not-virtual save instruction.
-In this way, we can avoid the repetitive transmission of results.
+In this way, we can avoid the repetitive transmission of final output results.
 The state records and modifications to normal SAVE instruction will be introduced in the following subsections.
+
+As introduces in \Cref{sec:vitualinter}, the only the input data are shared across the CalcBlobs. At the recovery step of CALC\_F, there is no need to recovery the weights. Thus, the recovery virtual instruction only restores the shared input data.
 
 \begin{figure}[h]
 	\centering
@@ -167,9 +171,9 @@ The state records and modifications to normal SAVE instruction will be introduce
 \end{figure}
 
 \subsubsection{SAVE}
-When an interrupt occurs at SAVE, there is no need to back up any data. The overhead of this interrupt is only to transfer input data and weights from DDR to the on-chip cache.
+When an interrupt occurs at SAVE, there is no need to back up any data. The overhead of this interrupt is only to transfer input data from DDR to the on-chip cache. 
 
-We want to minimize the cost of interrupt. We make the low-priority CNN interruptible after the SAVE or CALC\_F instructions. This method only introduces extra data transfer to recovery input data and weights without any excess backup data transfer.
+We want to minimize the cost of interrupt. We make the low-priority CNN interruptible after the SAVE or CALC\_F instructions. This method only introduces extra data transfer to recovery input data without any excess backup data transfer.
 
 Additional virtual instructions also take up bandwidth at instruction fetching phase, even if they are not executed. The instruction number of CALC\_I is tens of times of that of SAVE/CALC\_F. If the network can be interrupted after each CALC\_I, the rapidly increasing virtual instructions would reduce the system performance.
 

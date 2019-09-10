@@ -1,5 +1,13 @@
 \label{sec:experiments}
 
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.9\linewidth]{fig/env.pdf}
+  \caption{Muti-Robot Exploration: environment and results. }
+  \label{fig:env}
+\end{figure*}
+
 In this section, the evaluation of the instruction-based-interruption, hardware modules for post-processing, and the overall MA-Explore system are presented and analyzed.
 
 \subsection{ Experiment Setup }
@@ -9,14 +17,6 @@ The components in \Cref{fig:maexp} for each agent are implemented in the ZCU102 
 The VO module (\textcircled{3}) in the experiment is the PnP [??] method, which is widely used in the feature-point based VO, including the open source the ORB-SLAM \cite{Mur-Artal:2017281}. 
 The Dopt module (\textcircled{4}) are proposed in \cite{Choudhary:2017e66} and also used in former distributed SLAM system\cite{cieslewski2018data}. 
 The Map Merging \footnote{$http://wiki.ros.org/map\_merger$} (\textcircled{5}), Exploration \footnote{$http://wiki.ros.org/rrt\_exploration$} (\textcircled{6}), Navigation \footnote{$http://wiki.ros.org/navigation$} (\textcircled{7}) in this work are provided by the ROS framework. 
-
-
-\begin{figure*}[ht]
-  \centering
-  \includegraphics[width=0.9\linewidth]{fig/env.pdf}
-  \caption{Muti-Robot Exploration: environment and results. }
-  \label{fig:env}
-\end{figure*}
 
 The hardware resources is listed in \Cref{tab:hardware}. The CNN backbone is calculated by Xilinx AI accelerator, DPU\cite{dpu}, which is a hardware IP implemented on the FPGA side of ZCU102 (Programable logic, PL side). The FE post-processing steps run on our proposed accelerators, also on the PL side. The PL side has 2 clock frequencies. The DPU are running at 300MHz. The accelerator for FE post-processing are running at 200MHz.
 
@@ -41,18 +41,9 @@ The hardware resources is listed in \Cref{tab:hardware}. The CNN backbone is cal
 \end{table}%
 
 
-\subsection{ Instruction-based-interruption }
+\subsection{Virtual Instruction-based interrupt }
 
-We evaluate the latency to response the interrupt and the performance degradation of different interrupt method. In MR-Explore, only the low-priority PR task is interruptible, and the interrupt position is unpredictable. Thus, we randomly selected some interrupt locations inside the PR network.
-
-The latency to response the interrupt in CPU-like interrupt includes the time to finish current executing instruction and the data backup time for the on-chip data/weights caches. The latency in layer-by-layer interrupt is the time to finish current layer. The latency of our virtual-instruction-based method is the time to finish current executing instruction and the backup time for the calculated output results. 
-
-The cost of CPU-like interrupt is the data transfer time of all the on-chip caches to/from DDR. The cost of virtual-instruction-based method is the recovery of the input/weights from DDR to on-chip caches. There is no extra cost fot the layer-by-layer interrupt.
-
-For a precise evaluation the CNN run time, we record the clock cycles of the beginning and end of each instruction. The time of the interrupt response latency and the total cost in the following evaluation is calculated from the clock cycles and the clock frequence.
-
-The parallelism of the Angel-Eye is $Para_{height}=4$, $Para_{in}=16$, $Para_{out}=16$, i.e. each CALC instruction processes 4 lines from 16 input channe to 16 output channels. \Cref{fig:scatter1024} shows the interrupt response latency and the extra time cost for different implementation of interrupt.
-One dot represents a interrupt position in the low-priority PR network. 
+\subsubsection{ Interrupt response latency and extra cost}
 
 \begin{figure}[t]
   \centering
@@ -61,49 +52,67 @@ One dot represents a interrupt position in the low-priority PR network.
   \label{fig:scatter1024}
 \end{figure}
 
+We evaluate the latency to response the interrupt and the performance degradation of different interrupt method. In MR-Explore, only the low-priority PR task is interruptible, and the interrupt position is unpredictable. Thus, we randomly selected some interrupt locations inside the PR network.
+
+The latency to response the interrupt in CPU-like interrupt includes the time to finish current executing instruction and the data backup time for the on-chip data/weights caches (totally 2.2MB). The latency in layer-by-layer interrupt is the time to finish current layer. The latency of our virtual-instruction-based method is the time to finish current executing instruction and the backup time for the calculated output results. 
+
+The cost of CPU-like interrupt is the data transfer time of all the on-chip caches (totally 2.2MB) to/from DDR. The cost of virtual-instruction-based method is the recovery of the input/weights from DDR to on-chip caches. There is no extra cost fot the layer-by-layer interrupt.
+
+For a precise evaluation the CNN run time, we record the clock cycles of the beginning and end of each instruction. The time of the interrupt response latency and the total cost in the following evaluation is calculated from the clock cycles and the clock frequence.
+
+The CNN backbone of the interruptible PR is ResNet101 \cite{he2016deep}, wich contains 101 convolution layers. The input shapee of the PR CNN is $480 \times 640 \times 3$. The parallelism of the Angel-Eye is $Para_{height}=8$, $Para_{in}=16$, $Para_{out}=16$, i.e. each CALC instruction processes 8 lines from 16 input channe to 16 output channels. 
+
+We randomly sample 12 positions of the ResNet101 CNN backbone. The interrupt response latency and the extra time cost for different implementation of interrupt at the positions are listed in \Cref{fig:scatter1024}.
+
+
 
 % The performance and the latency of the interruptible DPU and the not-interruptible DPU are listed in \Cref{tab:anywhere}. 
 
 % We record some of the interrupt locations when running MR-Explore on the interruptible DPU. 
-\Cref{tab:anywhere} lists the  performance degradation at some typical positions, as well as the worst interrupt response latency of each position. The worst latency in virtual-instruction-based method means the interrupt request occurs at the beginning of a CalcBlob. The worst latency in the layer-by-layer method means interrupt request occurs at the beginning of the Layer.
-The 'Serial' row is the baseline for executing the two tasks in serial without interrupt. 
-In serial execution, backup/recovery of data is not required. The 'CPU-like' row is the estimated result of backup/recovery all the on-chip caches for immediately interruption. The 'Pose 1,2,3' rows are the results of the DPU interrupted at different  PR positions. 'Pose 1' represents the first layers of PR network, the numbers of input channel and output channel are both $64$. The input and output shapes are both $240 \times 320$. 'Pose 2' represents the layers with moderate number of channels ($ 512 $) and data shapes ($ 60 \times 80 $). 'Pose 3' represents the last layers with many channels ($ 2048 $) and small featuremaps ($ 15 \times 20$).
+% \Cref{tab:anywhere} lists the  performance degradation at some typical positions, as well as the worst interrupt response latency of each position. The worst latency in virtual-instruction-based method means the interrupt request occurs at the beginning of a CalcBlob. The worst latency in the layer-by-layer method means interrupt request occurs at the beginning of the Layer.
+% The 'Serial' row is the baseline for executing the two tasks in serial without interrupt. 
+% In serial execution, backup/recovery of data is not required. The 'CPU-like' row is the estimated result of backup/recovery all the on-chip caches for immediately interruption. The 'Pose 1,2,3' rows are the results of the DPU interrupted at different  PR positions. 'Pose 1' represents the first layers of PR network, the numbers of input channel and output channel are both $64$. The input and output shapes are both $240 \times 320$. 'Pose 2' represents the layers with moderate number of channels ($ 512 $) and data shapes ($ 60 \times 80 $). 'Pose 3' represents the last layers with many channels ($ 2048 $) and small featuremaps ($ 15 \times 20$).
 
-The CPU-like interrupt consumes the most latency and perform degradation. Though the layer-by-layer consumes no extra time, the latency is higher than our virtual-instruction-based interrupt. The worst latency of the layer-by-layer interrupt reaches 10 ms, because the interrupt occurs at the beginning of the second layer, which is the most time-consuming layer (10ms). The layer-by-layer interrupt need to wait for the finish of this layer. The performance at same interrupt position in our proposed virtual interrupt is not significantly different from that of other positions. Our method is significantly better than others at worst case. 
+The CPU-like interrupt consumes the most perform degradation. Though the layer-by-layer consumes no extra time, the latency is much higher than our virtual-instruction-based interrupt. In the worst case, the interrupt request occurs at the middle of the most computation consuming layers, whose input shape is $30 \times 40 \times 512$. The kernel shape is $3 \times 3$ and the output shape is also $30 \times 40 \times 512$. The execution time of this layer more than 10ms in the accelerator.
+The layer-by-layer interrupt need to wait for the finish of this layer. The performance at same interrupt position in our proposed virtual interrupt is not significantly different from that of other positions. Our method is significantly better than others at worst case. 
 
-The extra virtual instruction number is listed in \Cref{tab:instrnum}. Compared to the normal instruction and the data/weights transfer, the volunm of the extra virtual instructions is less than 0.01?\%. The performance degradation brought by the extra virtual instructions is negligible.
+
+\subsubsection{ Additional data transfer for the virtual instructions. }
+% The worst latency of the layer-by-layer interrupt reaches 10 ms, because the interrupt occurs at the beginning of the second layer, which is the most time-consuming layer (10ms). The layer-by-layer interrupt need to wait for the finish of this layer. The performance at same interrupt position in our proposed virtual interrupt is not significantly different from that of other positions. Our method is significantly better than others at worst case. 
+
+The extra virtual instruction number is listed in \Cref{tab:instrnum}. Compared to the normal instruction transfer, the volunm of with virtual instructions is less than 10\%. The performance degradation brought by the extra virtual instructions is negligible.
 
 
 
 % DPU first calculates all channels of the output row before calculating the next rows. As the number of channels increases, the number of weights requiring recovery increases squarely. However, the size of the input data to be restored and the output results to be backed up remains basically the same.
 
 
-% Table generated by Excel2LaTeX from sheet 'Sheet2'
-\begin{table}[t]
-  \small
-  \centering
-  \caption{Worst latency different interrupt positions.}
-    % Table generated by Excel2LaTeX from sheet 'Sheet2'
-\begin{tabular}{|c|c|c|c|c|c|}
-  \hline
-        & Backup  & Recovery & CPU-like & layer-by-layer & Virtual Instr. \bigstrut[t]\\
-        & (KB)  & (KB)  &  Latency (ms) & Latency (ms)   & Latency (ms) \bigstrut[b]\\
-  \hline
-  Pose 1 &       &       &       &      &  \bigstrut\\
-  \hline
-  Pose 2 &       &       &       &      &  \bigstrut\\
-  \hline
-  Pose 3 &       &       &       &      &  \bigstrut\\
-  \hline
-  CPU-Like & 4000  & 4000  &     &       & <1 \bigstrut\\
-  \hline
-  Serial & -     & -     &     &   & - \bigstrut\\
-  \hline
-  \end{tabular}%
+% % Table generated by Excel2LaTeX from sheet 'Sheet2'
+% \begin{table}[t]
+%   \small
+%   \centering
+%   \caption{Worst latency different interrupt positions.}
+%     % Table generated by Excel2LaTeX from sheet 'Sheet2'
+% \begin{tabular}{|c|c|c|c|c|c|}
+%   \hline
+%         & Backup  & Recovery & CPU-like & layer-by-layer & Virtual Instr. \bigstrut[t]\\
+%         & (KB)  & (KB)  &  Latency (ms) & Latency (ms)   & Latency (ms) \bigstrut[b]\\
+%   \hline
+%   Pose 1 &       &       &       &      &  \bigstrut\\
+%   \hline
+%   Pose 2 &       &       &       &      &  \bigstrut\\
+%   \hline
+%   Pose 3 &       &       &       &      &  \bigstrut\\
+%   \hline
+%   CPU-Like & 4000  & 4000  &     &       & <1 \bigstrut\\
+%   \hline
+%   Serial & -     & -     &     &   & - \bigstrut\\
+%   \hline
+%   \end{tabular}%
   
   
-  \label{tab:anywhere}%
-\end{table}%
+%   \label{tab:anywhere}%
+% \end{table}%
 
 
 % Table generated by Excel2LaTeX from sheet 'Sheet2'
@@ -114,12 +123,12 @@ The extra virtual instruction number is listed in \Cref{tab:instrnum}. Compared 
     % Table generated by Excel2LaTeX from sheet 'Sheet2'
 \begin{tabular}{|c|c|c|c|c|c|}
   \hline
-        & Weights  & Data & Instr.  & Virtual Instr. & Execute \bigstrut[t]\\
-        & (MB)  & (MB)  & Number   & Volunm (MB) & Time (ms) \bigstrut[b]\\
+         & Instr.  & Virtual Instr. & Execute \bigstrut[t]\\
+        & Number   & Volunm (MB) & Time (ms) \bigstrut[b]\\
   \hline
-  Origin &    42   &    100   &      364032      & 4.36 & 169? \bigstrut\\
+  Origin   &      364032      & 4.36 & 186.0 \bigstrut\\
   \hline
-  Virtual Instr. &   42   &   100   &     559569    & 6.70 & 169? \bigstrut\\
+  Virtual Instr.   &     400243    & 4.79 & 187.2 \bigstrut\\
   \hline
   \end{tabular}%
   \label{tab:instrnum}%
@@ -163,13 +172,11 @@ We are here to reminder the readers that the processing of the low-priority PR t
 
 
 
-\subsection{ Place Recognition With DPU }
+\subsection{ Place Recognition With the CNN accelerator }
 
-In this section, we design experiments to evaluate the accuracy and efficiency of the PR network on DPU. 
+In this section, we design experiments to evaluate the accuracy and efficiency of the PR network on the CNN accelerator. 
 
-\subsubsection{accuracy}
-
-\begin{figure}[ht]
+\begin{figure}[t]
     \centering
     \includegraphics[width=0.8\linewidth]{fig/result.eps}
     \caption{Precision-Recall curve on Citycenter dataset}
@@ -178,34 +185,34 @@ In this section, we design experiments to evaluate the accuracy and efficiency o
 
 We want to prove two things in our experiment. 1) The GeM network used in our work outperforms other networks such as NetVLAD. 2) The quantization of GeM CNN backbone don't bring about much drop in accuracy. We test 3 networks, a) float-point GeM, b) float-point NetVLAD, c) fixed-point GeM on Citycenter dataset and draw the Precision-Recall curve. The result is shown in figure \ref{fig:PRcurve}. It's clear that float-point GeM netowrk run better than NetVLAD in all situations. After quantization, the accuracy goes down a bit, especially when precision is high. But the quantized network still outperforms NetVLAD in most cases.
 
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.8\linewidth]{fig/example.eps}
-  \caption{Example of GeM performance.}
-  \label{fig:gem_exp}
-\end{figure}
+% \begin{figure}[t]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{fig/example.eps}
+%   \caption{Example of GeM performance.}
+%   \label{fig:gem_exp}
+% \end{figure}
 
-Figure \ref{fig:gem_exp} shows an example in our similation environment. Picture 1 and Picture 2 is photoed in the same place and Picture 3 is photoed in another place. The computed similarity of Picture 1 and 2 is 0.8887, apparently larger than the similarity of Picture 2 and 3 (0.8046).
+% Figure \ref{fig:gem_exp} shows an example in our similation environment. Picture 1 and Picture 2 is photoed in the same place and Picture 3 is photoed in another place. The computed similarity of Picture 1 and 2 is 0.8887, apparently larger than the similarity of Picture 2 and 3 (0.8046).
 
-\subsubsection{efficiency}
+% \subsubsection{efficiency}
 
-\begin{table}
-    \label{tab:gem_eff}
-    \centering 
-    \caption{runtime comparison of each operation in PR}
-    \begin{tabular}{|c|c|c|}
-				\hline
-              & CPU & CPU+FPGA \\
-        \hline
-           &   48 ms &   42 ms \\
-			  \hline
-    \end{tabular}
-  \end{table}
+% \begin{table}
+%     \label{tab:gem_eff}
+%     \centering 
+%     \caption{runtime comparison of each operation in PR}
+%     \begin{tabular}{|c|c|c|}
+% 				\hline
+%               & CPU & CPU+FPGA \\
+%         \hline
+%            &   48 ms &   42 ms \\
+% 			  \hline
+%     \end{tabular}
+%   \end{table}
 
-As illustrated in section \ref{sec:hardsoftcodesign}, we do optimization on GeM backend processing, i.e., the gem pooling layer. We compare running time before and after optimization, and the result is shown in table \ref{tab:gem_eff}. After optimization, the total time reduces by 12.5\%.
+% As illustrated in section \ref{sec:hardsoftcodesign}, we do optimization on GeM backend processing, i.e., the gem pooling layer. We compare running time before and after optimization, and the result is shown in table \ref{tab:gem_eff}. After optimization, the total time reduces by 12.5\%.
 
 
-\subsection{ VO With DPU }
+\subsection{ Feature-point Extraction With the CNN accelerator }
 
 To evaluate the performance of the SuperPoint network in visual odometer, we experimented on the $TUM$ dataset. We evaluate SuperPoint against two well-known FE systems: SIFT\cite{Lowe-478} and ORB\cite{RubleeRabaud-479}. We apply the three systems to the visual odometer. We also evaluate the performance after optimization. We compute a maximum of 200 points for all systems at a $480\times640$ resolution and set $NMS=4$. We perform nearest neighbor matching from descriptors in adjacent frames with a maximum allowable distance $d_m$. $d_m$ is not same in three system because descriptors are not in the same order of magnitude. We use an OpenCV implementation (solvePnP()) with all the matches to compute the transform matrix, and use Bundle Adjustment to optimize results. All the computation of this experiment is all done on the CPU except CNN of SuperPoint. 
 

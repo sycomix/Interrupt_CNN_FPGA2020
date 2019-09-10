@@ -1,8 +1,8 @@
 \label{sec:hardsoftcodesign}
-In this section, the software and hardware acceleration for CNN-based Feature-point Extraction (FE) and Place Recognition (PR) is introduced.
-
-\subsection{Optimization for FE Post-Processing}
 \label{subsec:FEopt}
+
+The high-priority feature-point extraction (FE) method is latency sensitive and needs to be computed before the next picture arrives. With the help of the CNN accelerator, the latency of CNN backbone is reduced with 30ms. However, the  post-processing of FE consumes 50+ms, which becomes the bottleneck of real-time feature-point extraction. In this section, the software and hardware acceleration for CNN-based Feature-point Extraction (FE) is introduced.
+
 
 \begin{figure}[t]
     \centering  
@@ -11,7 +11,7 @@ In this section, the software and hardware acceleration for CNN-based Feature-po
     \label{fig:superpoint}
 \end{figure}
 
-As mentioned before, there are two steps in the PE method: 1) feature-point detection and 2) feature descriptors generation. 
+As mentioned before in \Cref{sec:relate}, there are two steps in the PE method: 1) feature-point detection and 2) feature descriptors generation. 
 In SuperPoint \cite{detone2018superpoint}, there are three components in the feature-point detector, 1) Softmax to generate the confidence for each pixel, 2) Non-Maximum Suppression (NMS) to find the pixels with maximum confidence in its neighborhood, 3) Rank component to find out the first $k$ pixels with the highest confidence. 
 In the feature descriptors step, the normalization component consumes most of the computation. 
 
@@ -96,27 +96,27 @@ The number of descriptors that need to be normalized has been reduced from $H\ti
 
 The architecture of normalize accelerator is illustrated in \Cref{fig:FEaccelerator}(b). The normalization module can read 8 numbers per clock cycle. The normalization process is divided into three stages and requires each descriptor to be read twice. In the first stage, we compute the sum of the squares of the descriptors, which takes 32 clock cycles when $D=256$. Then the reciprocal of square root of sum is computed as the normalization coefficient. In the final stage, the descriptor is read a second time and multiplied by the normalization coefficient.
 
-\subsection{Optimization for PR Post-Processing}
+% \subsection{Optimization for PR Post-Processing}
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=1\linewidth]{fig/pr.eps}
-    \caption{The architecture of GeM network}
-    \label{fig:gem}
-\end{figure}
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=1\linewidth]{fig/pr.eps}
+%     \caption{The architecture of GeM network}
+%     \label{fig:gem}
+% \end{figure}
 
-Figure \ref{fig:gem} shows the data flow of GeM network \cite{gem} for PR. The CNN backbone of GeM is a resnet101 network without the last two layers(pooling and FC). The CNN maps the input image $ I \in \mathbb{R}^{3 \times H \times W}$ to a tensor $\mathcal{X} \in \mathbb{R}^{C \times H_1 \times W_1}$. Here, the channel number $C = 2048$. Then the gem pooling layer pool the tensor into a vector $\mathcal{V} \in \mathbb{R}^{C}$. (To avoid ambiguity, we use "GeM" to represent the whole network and "gem" to represent the pooling layer only.) Finally, the vector is normalized. After that, we use dot product or L2 distance of the vectors to calculate similarity of places. Because feature extraction needs to be real-time and is time consuming, we modify its software utilization and design FPGA accelertor for this process.
+% Figure \ref{fig:gem} shows the data flow of GeM network \cite{gem} for PR. The CNN backbone of GeM is a resnet101 network without the last two layers(pooling and FC). The CNN maps the input image $ I \in \mathbb{R}^{3 \times H \times W}$ to a tensor $\mathcal{X} \in \mathbb{R}^{C \times H_1 \times W_1}$. Here, the channel number $C = 2048$. Then the gem pooling layer pool the tensor into a vector $\mathcal{V} \in \mathbb{R}^{C}$. (To avoid ambiguity, we use "GeM" to represent the whole network and "gem" to represent the pooling layer only.) Finally, the vector is normalized. After that, we use dot product or L2 distance of the vectors to calculate similarity of places. Because feature extraction needs to be real-time and is time consuming, we modify its software utilization and design FPGA accelertor for this process.
 
-Experiments show that the post processing (gem pooling and normalization) consume nearly twice the time as CNN network does. After optimization, we can reduce time to 1/? of that of origin.
+% Experiments show that the post processing (gem pooling and normalization) consume nearly twice the time as CNN network does. After optimization, we can reduce time to 1/? of that of origin.
 
-\subsubsection{GeM Pooling Optimization}
+% \subsubsection{GeM Pooling Optimization}
 
-The element of the vector $\mathcal{V}$ is calculated by
+% The element of the vector $\mathcal{V}$ is calculated by
 
-\begin{equation}
-    \mathcal{V}_i = (\sum_{x \in \mathcal{C}_i} x^p)^{1/p}, i=1, 2, ..., 2048.
-\end{equation}
+% \begin{equation}
+%     \mathcal{V}_i = (\sum_{x \in \mathcal{C}_i} x^p)^{1/p}, i=1, 2, ..., 2048.
+% \end{equation}
 
-Here, the parameter $p$ is learned by back propagation and is set to 2.9? in original paper. To make it friendly for hardware computation, we change it to $p=3$. In this way, the power computation can be converted to multiplication computation. This will save a lot of time and calculation resources on FPGA without loss of accuracy. We notice that the channels are independent with each other, so it's convenient to do parallel computation on FPGA. With Vivado HLS tool, we design an IP core for gem pooling and efficiently reduce time.
+% Here, the parameter $p$ is learned by back propagation and is set to 2.9? in original paper. To make it friendly for hardware computation, we change it to $p=3$. In this way, the power computation can be converted to multiplication computation. This will save a lot of time and calculation resources on FPGA without loss of accuracy. We notice that the channels are independent with each other, so it's convenient to do parallel computation on FPGA. With Vivado HLS tool, we design an IP core for gem pooling and efficiently reduce time.
 
-\subsubsection{Normalization Optimization}
+% \subsubsection{Normalization Optimization}
