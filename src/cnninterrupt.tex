@@ -11,6 +11,17 @@
 % 	\label{fig:interDPR}
 % \end{figure*}
 
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.99\linewidth]{fig/interDPR.eps}
+    \caption{Interruption to solve the hardware resources conflicts.  
+    % When a high-priority task (FE) is started before the low-priority task (PR) is completed, the CNN accelerator backs up the status of PR to memory, and processes the FE task. When the high-priority task is completed, the low-priority task resumes and continues.
+    }
+	\label{fig:interDPR}
+\end{figure*}
+
+
 In this section, we introduce the concept of interrupt to CNN accelerator to support multi-task execution.
 
 \subsection{ Instruction Driven Accelerator }
