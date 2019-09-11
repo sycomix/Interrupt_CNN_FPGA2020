@@ -50,10 +50,10 @@ The LOAD instruction moves input featuremaps and weights from DDR to on-chip mem
 \subsection{Accelerator Interrupt}
 
 In order to support multi-task scheduling, interrupt is introduced in CPU. 
-In CPU, when a high-priority task requires an interrupt, the hardware or the interrupt handler software would back up the registers to main memory.
+In CPU, when a high-priority task requires an interrupt, the hardware or the interrupt handler software back up the registers to main memory.
 After the high-priority task is completed, the backed-up registers will be recovered to CPU hardware. 
 
-If the CNN accelerator support interrupt, it can run two or more CNN modules at the same time. \Cref{fig:interDPR} illustrates the idea of interrupt to schedule two CNN tasks simultaneously. In the process of running a low-priority network (PR), the software may send an execution request for the high-priority task (FE). The interrupt enables the CNN accelerator to backup the running state of previous task low-priority PR network, and then execute the high-priority FE network. When the high-priority task (FE) is complete, the low-priority task (PR) is restored to the accelerator and continues to execute.
+If the CNN accelerator supports interrupt, it can run two or more CNN modules at the same time. \Cref{fig:interDPR} illustrates the idea of interrupt to schedule two CNN tasks. In the process of running a low-priority network (PR), the software may send an execution request for the high-priority task (FE). The interrupt enables the CNN accelerator to backup the running state of previous task low-priority PR network, and then execute the high-priority FE network. When the high-priority task (FE) is complete, the low-priority task (PR) is restored to the accelerator and continues to execute.
 
 With the help of accelerator interrupt, the execution of the low-priority task (PR) is divided into pieces, and each piece is allocated to the time interval of running the high-priority networks (FE). 
 Accelerator interrupt multiplexes the time division of the accelerator, reduces the idle time of the accelerator, and improves the utilization of hardware resources. 
@@ -73,17 +73,15 @@ Accelerator interrupt multiplexes the time division of the accelerator, reduces 
 
 There are different methods to implement interrupt in CNN accelerators.
 
-\subsubsection{CPU-Like}
-When an interrupt request occurs in CPU, CPU would back up all the on-chip registers to DDR. However there are only tens of registers in CPU, and the backed-up data is around 1 KB. In CNN accelerators, there are hundreds of KB ~ several MB on-chip cache \cite{qiu2016going, yu2018instruction}, including data buffer and weight buffer. If all the on-chip cache is backed-up and recovered, the cost of data transfer in the CNN accelerator is much higher than that of CPU. Thus, the latency of the accelerator to response the interrupt is increased, and the extra time for data transfer leads to performance degradation.
+\textbf{CPU-Like.}
+When an interrupt request occurs in CPU, CPU backs up all the on-chip registers to DDR. However there are only tens of registers in CPU, and the backed-up data less than 1 KB. In CNN accelerators, there are hundreds of KB ~ several MB on-chip cache \cite{qiu2016going, yu2018instruction}, including data buffer and weight buffer. If all the on-chip cache is backed-up and recovered, the cost of data transfer in the CNN accelerator is much higher than that of CPU. Thus, the latency of the accelerator to response the interrupt is increased, and the extra time for data transfer leads to performance degradation.
 
-\subsubsection{Layer-by-layer}
-Most accelerators are scheduling layer by layer \cite{qiu2016going,guo2017angel}. When interrupt after finishing the whole layer, there is no extra data transfer for the accelerator to switch between different task. However, the position of the interrupt request is irregular and inpreidctible. When a interrupt occurs at the beginning of a CNN layer of the low-priority network, the CNN accelerator would finishing the whole layer before switching to the high-pripority task. Thus, the latency to response the interrupt is also increased to waiting for finishing the whole layer.
+\textbf{Layer-by-layer.}
+Most accelerators run the CNN layer by layer \cite{qiu2016going,guo2017angel}. When interrupt after finishing the whole layer, there is no extra data transfer for the accelerator to switch between different task. However, the position of the interrupt request is irregular and inpreidctible. When a interrupt occurs at the beginning of a CNN layer of the low-priority network, the CNN accelerator need to finish the whole layer before switching to the high-pripority task. Thus, the latency to response the interrupt is also increased to waiting for finishing the whole layer.
 
 The latency to response the interrupt and the performance degradation of the CPU-like interrupt and Layer-by-layer method will be evaluated in \Cref{sec:experiments}.
 
-\subsubsection{Virtual Instruction}
-\label{sec:vitualinter}
-We propose the \textbf{virtual-instruction-based} method to enable low-latency interrupt. Different from the CPU-like interrupt, which backup/recovery all the on-chip caches, only the on-chip cache which is still needed in future execution will be backed-up and restored. So that the data transfer is much less than that of CPU-like interrupt.
+We propose the \textbf{virtual-instruction-based} method to enable low-latency interrupt. Different from the CPU-like interrupt, which backup/recovery all the on-chip caches, only the on-chip cache which is still needed in future execution will be backed-up and restored. So that the amount of data transfer is much lower than that of CPU-like interrupt.
 
 To reduce the latency to response the interrupt, our virtual-instruction-based mothod is interruptible inside each layer. We add some virtual instructions to the normal instruction sequence.
 The virtual instructions, which contain the backup and recovery instructions, are responsible for backing up and restoring the execution status. 
@@ -94,7 +92,7 @@ Thus, there is no need to back up the input buffer and weight buffer. Only the i
 For recovery virtual instructions, the weights and input data, as well as the backed-up intermediate data, are needed to be restored from DDR to the on-chip cache.
 The accelerator can switch to a different task after the backup virtual instructions, and resume the execution by the recovery virtual instructions.
 
-By adding the virtual instructions, the CNN can interrupt anywhere, and the latency to to response the interrupt is reduced. However, there virtual instructions are only valid when interrupt occurs. So we add a field in the origin instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. The modifications to the instruction set will be introduced in \Cref{sec:virtualinstr}. 
+By adding the virtual instructions, the CNN can be interrupted anywhere, and the latency to to response the interrupt is reduced. However, there virtual instructions are only valid when interrupt occurs. So we add a field in the origin instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. The modifications to the instruction set will be introduced in \Cref{sec:virtualinstr}. 
 
 Virtual-instruction-based method has two potential factors that may lead to system performance degradation: 1) The extra data transfer to backup/restore execution status takes up additional bandwidth resources. 2) The instruction fetch for the virtual instructions also uses bandwidth resources, even they are skipped and discarded.
 
@@ -140,7 +138,7 @@ To address the above problems of virtual-instruction-based method, \Cref{sec:whe
 There is no need to make every instruction interruptible. We select the position of interrupt to minimize the extra cost of the proposed virtual-instruction-based method. The backup/recovery data for different interrupt position at each kind of instruction are listed in the Backup/Recovery columns of \Cref{tab:instr}. The backup/recovery data transfer for interrupting each instruction is analyzed as follows:
 
 \subsubsection{LOAD\_W / LOAD\_D }
-When an interruption occurs at LOAD, the newly loaded data would immediately be flushed when running the high-level CNN, leading to bandwidth waste.
+When an interruption occurs at LOAD, the newly loaded data are immediately flushed when running the high-level CNN, leading to bandwidth waste.
 
 \subsubsection{CALC\_I} 
 When an interrupt occurs at CALC\_I, the unsaved finial results ( generated by previous CALC\_F) should be saved to DDR. The intermediate data from current CALC\_I should also be sent to DDR for further use. At the Recovery stage, the intermediate data should be fetched from DDR. The data movement of intermediate results leads to additional bandwidth requirements.
@@ -152,7 +150,7 @@ If the accelerator can record the interrupt status, we can modify the address an
 In this way, we can avoid the repetitive transmission of final output results.
 The state records and modifications to normal SAVE instruction will be introduced in the following subsections.
 
-As introduces in \Cref{sec:vitualinter}, the only the input data are shared across the CalcBlobs. At the recovery step of CALC\_F, there is no need to recovery the weights. Thus, the recovery virtual instruction only restores the shared input data.
+As introduced in \Cref{sec:howinter}, the only the input data are shared across the CalcBlobs. At the recovery step of CALC\_F, there is no need to recovery the weights. Thus, the recovery virtual instruction only restores the shared input data.
 
 \begin{figure}[h]
 	\centering
@@ -173,11 +171,11 @@ As introduces in \Cref{sec:vitualinter}, the only the input data are shared acro
 \subsubsection{SAVE}
 When an interrupt occurs at SAVE, there is no need to back up any data. The overhead of this interrupt is only to transfer input data from DDR to the on-chip cache. 
 
-We want to minimize the cost of interrupt. We make the low-priority CNN interruptible after the SAVE or CALC\_F instructions. This method only introduces extra data transfer to recovery input data without any excess backup data transfer.
+In order to minimize the cost of interrupt. We make the low-priority CNN interruptible after the SAVE or CALC\_F instructions. This method only introduces extra data transfer to recovery input data without any excess backup data transfer.
 
-Additional virtual instructions also take up bandwidth at instruction fetching phase, even if they are not executed. The instruction number of CALC\_I is tens of times of that of SAVE/CALC\_F. If the network can be interrupted after each CALC\_I, the rapidly increasing virtual instructions would reduce the system performance.
+Additional virtual instructions also take up bandwidth at instruction fetching phase, even if they are not executed. The instruction number of CALC\_I is tens of times of that of SAVE/CALC\_F. If the network can be interrupted after each CALC\_I, the rapidly increasing virtual instructions reduce the system performance.
 
-\subsection{ Instruction Set Improvement }
+\subsection{Virtual Instruction ISA }
 \label{sec:virtualinstr}
 
 We extend the instruction set shown in \Cref{fig:normal_instr}. Two fields are added: 1) Virtual and 2) SaveID, as illustrated in \Cref{fig:virtual_instr}.
@@ -220,7 +218,7 @@ For Multiple Blob Save, virtual SAVE and LOAD instructions are generated after t
 
 A specific hardware module called Instruction Arrangement Unit (IAU) is designed to handle the computing requirements from different tasks with different priorities. The IAU monitors the interrupt status, and generates a simple instruction sequence dynamically. The decoder, controller, processing elements in the CNN accelerator does not need to know the interrupt status, but only operate the instructions provided by IAU.
 
-The hardware implementation of IAU is shown in \Cref{fig:IAU}, which supports four different tasks at different priorities. Task 0 has the highest priority and is uninterruptible. 
+The hardware implementation of IAU is shown in \Cref{fig:IAU}, which supports four different tasks with different priorities. Task 0 has the highest priority and is uninterruptible. 
 
 InstrAddr records the address to fetch the instructions of the corresponding task. The InputOffset and the OutputOffset are configured by the software, which indicate base address offsets of the input and output data. With the configuration of the offsets, low-latency ScratchPad memory \cite{Banakar2002Scratchpad} can be used for directly data sharing between CPU cores and accelerators. The data sharing with ScratchPad \cite{Banakar2002Scratchpad} is introduced in \Cref{sec:incame}.
 
@@ -235,6 +233,6 @@ An example of the instruction modification will be given at \Cref{sec:exampleVir
 
 
 The example is based on a straightforward convolutional layer, which has only one input channel and one output channel. 
-The convolution kernel size is $1 \times 1$. The shape of the input and output featuremaps is $ 2 \times 16 $ (\Cref{fig:interexample}(a) ). The two lines of output are calculated by two CALC\_F instructions ( instruction 3 and 7). The addresses used in the instruction example are listed in \Cref{fig:interexample}(b). \Cref{fig:interexample}(c) is the instruction sequence from DDR with virtual instructions. \Cref{fig:interexample}(d) is the executed instructions without interrupt. When an interrupt occurs at the first CALC\_F, \Cref{fig:interexample}(e) illustrated the backup and recovery instructions (Blue) and the modified SAVE instruction (Red).
+The convolution kernel size is $1 \times 1$. The shape of the input and output featuremaps is $ 2 \times 16 $ (\Cref{fig:interexample}(a) ). The two lines of output are calculated by two CALC\_F instructions ( instruction 3 and 7). The addresses used in the instruction example are listed in \Cref{fig:interexample}(b). \Cref{fig:interexample}(c) is the instruction sequence from DDR with virtual instructions. \Cref{fig:interexample}(d) is the executed instructions without interrupt. When an interrupt occurs at the first CALC\_F, \Cref{fig:interexample}(e) illustrates the backup and recovery instructions (Blue) and the modified SAVE instruction (Red).
 
 % The hardware implementation of IAU is shouwn in \Cref{{fig:IAU}. There is a Status Pool which records the running states of each task. The InstrAddr is records the instruction address of each CNN
