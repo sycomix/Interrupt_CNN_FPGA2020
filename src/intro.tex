@@ -91,9 +91,9 @@ To address the above challenges, we propose an INterruptible CNN Accelerator for
 \begin{itemize}
     % \begin{itemize}[leftmargin = 10 pt]
 % \item We propose a CNN-based MR-Exploration framework based on FPGA. The hardware and software modules in INCAME is designed for ROS \cite{quigley2009ros}, so that the modules can be easily used in other applications.
-\item We propose a CNN-based MR-Exploration framework (INCAME) based on FPGA. The hardware and software modules in INCAME is designed for ROS \cite{quigley2009ros}, so that the modules can be easily used in other applications.
-\item We propose a \textbf{virtual-instruction-based} interrupt method to make the CNN accelerator support dynamic multi-thread scheduling by priority.
-\item We optimize the data flow of the post-processing operations. Hardware modules are designed for the optimized post-processing.
+\item We propose a CNN-based MR-Exploration framework (INCAME). CNN-based methods for feature-point extraction (FE) and place recognition (PR) are accelerated with FPGA on ROS platform\cite{quigley2009ros}. With the help of the unified interface in ROS, these methods can be easily used by other developers in different applications.
+\item We propose a \textbf{virtual-instruction-based} interrupt method to make the CNN accelerator support dynamic multi-thread scheduling by priority. The method solves the hardware resources conflicts when accelerating different CNN tasks on ROS.
+\item We optimize the data flow of the post-processing operations. Hardware modules are also designed for the optimized post-processing. This software-hardware co-optimization makes the MR-Exploration real-time.
 \end{itemize}
 
 The rest of this article is organized as follows: \Cref{sec:relate} will introduce the related work. \Cref{sec:cnninterrupt} details the {virtual-instruction-based} interrupt. \Cref{sec:hardsoftcodesign} details the optimization of post-processing. \Cref{sec:incame} introduces the INCAME framework with ROS. Experimental results and analysis are given in \Cref{sec:experiments}. \Cref{sec:conclusion} concludes this article.
