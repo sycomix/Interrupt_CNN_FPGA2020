@@ -3,12 +3,13 @@ With the development of Convolutional Neural Network (CNN), the accuracy of some
 To deploy CNNs on the embedded real-time system, previous works design CNN accelerators on FPGA. 
 However, previous CNN accelerators mainly focused on improving the performance of a single neural network, lacking multi-task support.
 Since researchers in robotics usually run different CNN tasks simultaneously, the inability of accelerators to support multi-task makes it difficult for researchers in robotics to use embedded FPGA.
+After accelerating the CNN backbones, the post-processing of  CNN-based components (such as PR and FE), which is also computation consuming, becomes the bottleneck of the system.
 
-We propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) for rapid deployment of MR-Exploration on FPGA.
-INCAME proposes a virtual-instruction-based interrupt method to support multi-task on CNN accelerators.
-After accelerating  CNN backbones, the post-processing of  CNN-based components (such as PR and FE), which is also computation consuming, becomes the bottleneck of the system.
-Thus, INCAME also includes RTL/HLS hardware modules to accelerate the post-processing of the CNN-based components.
-We evaluate INCAME on Xilinx ZU9 MPSoC. The experiment results show that INCAME enables multi-task scheduling on the CNN accelerator with negligible performance reduction (??\%). With the help of multi-task, INCAME enables embedded FPGA (Xilinx ZU9) executing MR-Exploration in real-time (20 fps).
+To handle such problems, we propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) for rapid deployment of MR-Exploration on FPGA.
+In INCAME, we proposes a virtual-instruction-based interrupt method to support multi-task on CNN accelerators.
+INCAME also includes hardware modules to accelerate the post-processing of the CNN-based components.
+% We evaluate INCAME on Xilinx ZU9 MPSoC. 
+The experiment results show that INCAME enables multi-task scheduling on the CNN accelerator with negligible performance reduction (0.8\%). With the help of multi-task, INCAME enables embedded FPGA (Xilinx ZU9) executing MR-Exploration in real-time (20 fps).
 % Multi-robot exploration (MR-Exploration) that provides the location and maps is the basic task for many multi-robot applications. 
 % Feature-point Extraction (FE) and Place Recognition (PR) are two critical modules in MR-Exploration.
 % The accuracy of both modules can benefit from Convolutional Neural Network (CNN).
