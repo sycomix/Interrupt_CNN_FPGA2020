@@ -8,7 +8,7 @@
   \label{fig:env}
 \end{figure*}
 
-In this section, the evaluation of the instruction-based-interruption, hardware modules for post-processing, and the overall MA-Explore system are presented and analyzed.
+In this section, the evaluation of the instruction-based-interruption, hardware modules for post-processing, and the overall MR-Exploration system are presented and analyzed.
 
 \subsection{ Experiment Setup }
 
@@ -52,7 +52,7 @@ The hardware resources is listed in \Cref{tab:hardware}. The CNN backbone is cal
   \label{fig:scatter1024}
 \end{figure}
 
-We evaluate the latency to response the interrupt and the performance degradation of different interrupt method. In MR-Explore, only the low-priority PR task is interruptible, and the interrupt position is unpredictable. Thus, we randomly selected some interrupt locations inside the PR network.
+We evaluate the latency to response the interrupt and the performance degradation of different interrupt method. In MR-Exploration, only the low-priority PR task is interruptible, and the interrupt position is unpredictable. Thus, we randomly selected some interrupt locations inside the PR network.
 
 The latency to response the interrupt in CPU-like interrupt includes the time to finish current executing instruction and the data backup time for the on-chip data/weights caches (totally 2.2MB). The latency in layer-by-layer interrupt is the time to finish current layer. The latency of our virtual-instruction-based method is the time to finish current executing instruction and the backup time for the calculated output results. 
 
@@ -68,7 +68,7 @@ We randomly sample 12 positions of the ResNet101 CNN backbone. The interrupt res
 
 % The performance and the latency of the interruptible DPU and the not-interruptible DPU are listed in \Cref{tab:anywhere}. 
 
-% We record some of the interrupt locations when running MR-Explore on the interruptible DPU. 
+% We record some of the interrupt locations when running MR-Exploration on the interruptible DPU. 
 % \Cref{tab:anywhere} lists the  performance degradation at some typical positions, as well as the worst interrupt response latency of each position. The worst latency in virtual-instruction-based method means the interrupt request occurs at the beginning of a CalcBlob. The worst latency in the layer-by-layer method means interrupt request occurs at the beginning of the Layer.
 % The 'Serial' row is the baseline for executing the two tasks in serial without interrupt. 
 % In serial execution, backup/recovery of data is not required. The 'CPU-like' row is the estimated result of backup/recovery all the on-chip caches for immediately interruption. The 'Pose 1,2,3' rows are the results of the DPU interrupted at different  PR positions. 'Pose 1' represents the first layers of PR network, the numbers of input channel and output channel are both $64$. The input and output shapes are both $240 \times 320$. 'Pose 2' represents the layers with moderate number of channels ($ 512 $) and data shapes ($ 60 \times 80 $). 'Pose 3' represents the last layers with many channels ($ 2048 $) and small featuremaps ($ 15 \times 20$).
@@ -178,7 +178,7 @@ In this section, we design experiments to evaluate the accuracy and efficiency o
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.8\linewidth]{fig/result.eps}
+    \includegraphics[width=0.8\linewidth]{fig/PRresult.pdf}
     \caption{Precision-Recall curve on Citycenter dataset}
     \label{fig:PRcurve}
 \end{figure}
@@ -270,7 +270,7 @@ Results are shown in \Cref{tab:VO}. In terms of accuracy, SuperPoint outperforms
 
 We compare the running time of each operation in SuperPoint before and after the optimization. Results are shown in \Cref{tab:optimization}. The running time of each operation is reduced by more than $20\times$. There is a certain gap between the experimental results of the acceleration effect and the theoretical derivation in \Cref{subsec:FEopt}. The possible reason is that the CPU needs time to schedule the FPGA accelerator.
 
-\subsection{ ROS based MA-Explore }
+\subsection{ ROS based MR-Exploration }
 
 The results of the Multi-Robot Exploration based on our INCAME is shown in \Cref{fig:env}. The space in the AirSim for the robots to explore is shown in \Cref{fig:env}(a). It is a simple rectangle area with four different pillars, and some chairs at the center (in the white box).  \Cref{fig:env}(b) shows how PR works for map maerging. The FE and VO on each agent produce the local map and trajectory on each ZCU102 board. When the PR threads on different agents find out a similar scene. The relative pose of the two agents at the similar scene are calculated. The map and the trajectory is merged with the calculated relative pose, as shown in \Cref{fig:env}(c).
 

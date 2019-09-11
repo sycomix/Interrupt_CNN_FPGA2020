@@ -1,24 +1,24 @@
-Multi-robot exploration (MR-Explore) that provides the location and maps is the basic task for many multi-robot applications. 
-With the development of Convolutional Neural Network (CNN), the accuracy of some critical components in MR-Explore, such as Feature-point Extraction (FE) and Place Recognition (PR), can significantly benefit from CNN. 
-To deploy the CNNs on the embedded real-time system, previous works design CNN accelerators on FPGA. 
+Multi-robot exploration (MR-Exploration) that provides the location and maps is the basic task for many multi-robot applications. 
+With the development of Convolutional Neural Network (CNN), the accuracy of some critical components in MR-Exploration, such as Feature-point Extraction (FE) and Place Recognition (PR), can significantly benefit from CNN. 
+To deploy CNNs on the embedded real-time system, previous works design CNN accelerators on FPGA. 
 However, previous CNN accelerators mainly focused on improving the performance of a single neural network, lacking multi-task support.
 Since researchers in robotics usually run different CNN tasks simultaneously, the inability of accelerators to support multi-task makes it difficult for researchers in robotics to use embedded FPGA.
 
-We propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) for rapid deployment of MR-Explore on FPGA.
+We propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) for rapid deployment of MR-Exploration on FPGA.
 INCAME proposes a virtual-instruction-based interrupt method to support multi-task on CNN accelerators.
 After accelerating  CNN backbones, the post-processing of  CNN-based components (such as PR and FE), which is also computation consuming, becomes the bottleneck of the system.
 Thus, INCAME also includes RTL/HLS hardware modules to accelerate the post-processing of the CNN-based components.
-We evaluate INCAME on Xilinx ZU9 MPSoC. The experiment results show that INCAME enables multi-task scheduling on the CNN accelerator with negligible performance reduction (??\%). With the help of multi-task, INCAME enables embedded FPGA (Xilinx ZU9) executing MA-Explore in real-time (20 fps).
-% Multi-robot exploration (MR-Explore) that provides the location and maps is the basic task for many multi-robot applications. 
-% Feature-point Extraction (FE) and Place Recognition (PR) are two critical modules in MR-Explore.
+We evaluate INCAME on Xilinx ZU9 MPSoC. The experiment results show that INCAME enables multi-task scheduling on the CNN accelerator with negligible performance reduction (??\%). With the help of multi-task, INCAME enables embedded FPGA (Xilinx ZU9) executing MR-Exploration in real-time (20 fps).
+% Multi-robot exploration (MR-Exploration) that provides the location and maps is the basic task for many multi-robot applications. 
+% Feature-point Extraction (FE) and Place Recognition (PR) are two critical modules in MR-Exploration.
 % The accuracy of both modules can benefit from Convolutional Neural Network (CNN).
 % Previous CNN accelerators on FPGA mainly focus on improving the performance of a single neural network, lacking multi-task support.
 % Researchers in robotics usually run several CNN tasks simultaneously, such as FE and PR.
 % The inability of CNN accelerators to support multi-task makes it difficult for researchers in robotics to use embedded FPGA.
 
-% We propose a \textit{MU}lti-\textit{RO}bot \textit{EX}ploration \textit{E}ngine (MUROEXE) to deploy MR-Explore on embedded FPGA. 
+% We propose a \textit{MU}lti-\textit{RO}bot \textit{EX}ploration \textit{E}ngine (MUROEXE) to deploy MR-Exploration on embedded FPGA. 
 % We propose a virtual-instruction-based interrupt method to support multi-task on CNN accelerators.
 % Besides the CNN backbone, the post-precessing for CNN-based FE and PR is also computation consuming. 
 % MUROEXE introduces RTL/HLS modules to accelerate the post-precessing of CNN-based modules.
 % Experiments show that MUROEXE supports multi-thread scheduling with negligible performance reduction (??\%).
-% MUROEXE enables embedded FPGA (Xilinx ZU9) executing MA-Explore in real-time (30 fps).
+% MUROEXE enables embedded FPGA (Xilinx ZU9) executing MR-Exploration in real-time (30 fps).
