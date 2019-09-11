@@ -35,17 +35,15 @@ After a channel-wise softmax, the background channel is removed, and a $\mathbb{
 The channel-wise softmax makes the points in different grid areas have equal confidences.
 The tensor of size $\mathbb{R}^{H\times W}$ corresponds to the confidences of the feature points in the input image.
 
-The standard softmax function is defined in \Cref{equ:softmax_o}.
+The standard softmax function is defined as $\sigma (\mathbf {z} )_{i}$ in \Cref{equ:softmax_hard}.
 We optimize the process of softmax that we only take the maximum value of each grid area for subsequent computations, which not only reduces the division operations of softmax but also simplifies the calculation of NMS and Rank.
 We reduce the division operations and output size of softmax from $H \times W$ to $H_c \times W_c$.
 The division operation is resource consuming on FPGA platforms. 
 Our method can greatly reduce the number of divisions by $64 \times$, making it easy to accelerate softmax operation on FPGA.
 
 \begin{equation}
-    \sigma (\mathbf {z} )_{i}={\frac {e^{z_{i}}}{\sum _{j=1}^{K}e^{z_{j}}}}{\text{ for }}i=1,\dotsc ,64;
-    \label{equ:softmax_o}
-\end{equation}
-\begin{equation}
+    \sigma (\mathbf {z} )_{i}={\frac {e^{z_{i}}}{\sum _{j=1}^{K}e^{z_{j}}}}
+    \Rightarrow
     \frac{1}{\sigma (\mathbf {z} )_{i}}={\frac {\sum _{j=1}^{K}2^{z_{j}}}{2^{z_{i}}}}{\text{ for }}i=1,\dotsc ,64;
     \label{equ:softmax_hard}
 \end{equation}
