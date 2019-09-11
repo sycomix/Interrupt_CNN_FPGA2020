@@ -27,4 +27,5 @@
 *.fdb_latexmk
 *.pptx
 ~*
-fig/*.pdf
+fig/*eps-converted-to.pdf
+!fig/*pdf

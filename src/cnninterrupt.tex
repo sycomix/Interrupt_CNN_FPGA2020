@@ -14,7 +14,7 @@
 
 \begin{figure*}[t]
 	\centering
-	\includegraphics[width=0.99\linewidth]{fig/interDPR.eps}
+	\includegraphics[width=0.99\linewidth]{fig/interDPR.pdf}
     \caption{Interruption to solve the hardware resources conflicts.  
     % When a high-priority task (FE) is started before the low-priority task (PR) is completed, the CNN accelerator backs up the status of PR to memory, and processes the FE task. When the high-priority task is completed, the low-priority task resumes and continues.
     }
@@ -165,7 +165,7 @@ As introduces in \Cref{sec:vitualinter}, the only the input data are shared acro
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.99\linewidth]{fig/iau.eps}
+	\includegraphics[width=0.99\linewidth]{fig/iau.pdf}
 	\caption{Hardware Architecture of IAU. The software on the CPU side (PS side) communicates IAU to access the CNN accelerator. IAU records the running state of each task, such as the address to fetch instructions, the SaveID of interrupted instructions. At runtime, IAU translates the input instruction sequence with virtual instructions to a normal sequence of instructions. }
 	\label{fig:IAU}
 \end{figure}
@@ -184,7 +184,7 @@ We extend the instruction set shown in \Cref{fig:normal_instr}. Two fields are a
 
 \begin{figure*}[t]
 	\centering
-	\includegraphics[width=0.95\linewidth]{fig/interexample.eps}
+	\includegraphics[width=0.95\linewidth]{fig/interexample.pdf}
 	\caption{ A simple example of accelerator interrupt based on Virtual Instruction. }
 	\label{fig:interexample}
 \end{figure*}
