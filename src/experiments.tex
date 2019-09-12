@@ -16,7 +16,7 @@ The hardware-in-loop evaluate environment is illustrated in \Cref{fig:env}(a). T
 The components in \Cref{fig:maexp} for each agent are implemented in the ZCU102 board. TThe implementation of the FE(\textcircled{1}, SuperPoint\cite{detone2018superpoint}) and PR (\textcircled{2}, Gem \cite{radenovic2018fine}) modules are introduced in former sections. 
 The VO module (\textcircled{3}) in the experiment is the PnP [??] method, which is widely used in the feature-point based VO, including the open source the ORB-SLAM \cite{Mur-Artal:2017281}. 
 The Dopt module (\textcircled{4}) are proposed in \cite{Choudhary:2017e66} and also used in former distributed SLAM system\cite{cieslewski2018data}. 
-The Map Merging \footnote{$http://wiki.ros.org/map\_merger$} (\textcircled{5}), Exploration \footnote{$http://wiki.ros.org/rrt\_exploration$} (\textcircled{6}), Navigation \footnote{$http://wiki.ros.org/navigation$} (\textcircled{7}) in this work are provided by the ROS framework. 
+The Map Merging \cite{Andre2014} (\textcircled{5}), Exploration \cite{8202319} (\textcircled{6}), Navigation \cite{tbd} (\textcircled{7}) in this work are provided by the ROS framework. 
 
 The hardware resources is listed in \Cref{tab:hardware}. The CNN backbone is calculated by Xilinx AI accelerator, DPU\cite{dpu}, which is a hardware IP implemented on the FPGA side of ZCU102 (Programable logic, PL side). The FE post-processing steps run on our proposed accelerators, also on the PL side. The PL side has 2 clock frequencies. The DPU are running at 300MHz. The accelerator for FE post-processing are running at 200MHz.
 
@@ -214,7 +214,7 @@ We want to prove two things in our experiment. 1) The GeM network used in our wo
 
 \subsection{ Feature-point Extraction With the CNN accelerator }
 
-To evaluate the performance of the SuperPoint network in visual odometer, we experimented on the $TUM$ dataset. We evaluate SuperPoint against two well-known FE systems: SIFT\cite{Lowe-478} and ORB\cite{RubleeRabaud-479}. We apply the three systems to the visual odometer. We also evaluate the performance after optimization. We compute a maximum of 200 points for all systems at a $480\times640$ resolution and set $NMS=4$. We perform nearest neighbor matching from descriptors in adjacent frames with a maximum allowable distance $d_m$. $d_m$ is not same in three system because descriptors are not in the same order of magnitude. We use an OpenCV implementation (solvePnP()) with all the matches to compute the transform matrix, and use Bundle Adjustment to optimize results. All the computation of this experiment is all done on the CPU except CNN of SuperPoint. 
+To evaluate the performance of the SuperPoint network in visual odometer, we experimented on the $TUM$ dataset. We evaluate SuperPoint against two well-known FE systems: SIFT\cite{Lowe-478} and ORB\cite{RubleeRabaud-479}. We apply the three systems to the visual odometer. We also evaluate the performance after optimization. We compute a maximum of 200 points for all systems at a $480\times640$ resolution and set $NMS=4$. We perform nearest neighbor matching from descriptors in adjacent frames with a maximum allowable distance $d_m$. $d_m$ is not same in three system because descriptors are not in the same order of magnitude. We use an OpenCV implementation (solvePnP()) with all the matches to compute the transform matrix [??], and use Bundle Adjustment to optimize results [??]. All the computation of this experiment is all done on the CPU except CNN of SuperPoint. 
 
 \begin{table}[t]
   \centering
