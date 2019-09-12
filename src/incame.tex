@@ -33,7 +33,7 @@ To address this problem, we set the priorities of different tasks at the initial
 % The run-time status of the CNN accelerator is not predictable when developers writing the program. Line 13 in ROSExample1 and line 9 in ROSExample2 initialize the DPU for each task. Line5 in ROSExample1 an d line 3 in ROSExample2 run the tasks on the same CNN accelerator, which may result in hardware conflicts. In INCAME, the priorities of different tasks are configured at initialization phase to address the hardware conflicts problem.
 
 
-\begin{algorithm}[h]
+\begin{algorithm}[t]
     \caption{ ROS Node for FE }
     \label{code:FE}
     \begin{algorithmic}[1]
@@ -61,7 +61,7 @@ To address this problem, we set the priorities of different tasks at the initial
     \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[h]
+\begin{algorithm}[t]
     \caption{ ROS Node for PR }
     \label{code:PR}
     \begin{algorithmic}[1]
