@@ -11,6 +11,27 @@
 % 	\label{fig:interDPR}
 % \end{figure*}
 
+
+In this section, we introduce our \textbf{virtual-instrcution-based method} to enable accelerator interrupt. Compared with the CPU-like and Layer-By-Layer interrupt method, virtual-instrcution-based method minimizes the interrupt response latency and extra cost for interrupt.
+% In this section, we introduce our virtual-instrcution-based method to enable accelerator interrupt. To minimize the interrupt response latency and extra cost for interrupt, we propose the virtual-instruction-based accelerator interrupt method.
+
+\subsection{ Instruction Driven Accelerator }
+
+There are three categories of instruction in the instruction-driven accelerator: LOAD, CALC, and SAVE \cite{guo2017angel, yu2018instruction}. The instruction description of each kind of instruction are listed in \Cref{fig:instructions}(a) and \Cref{tab:instr}.
+
+The LOAD instruction moves input featuremaps and weights from DDR to on-chip memory. The SAVE instruction moves the calculated output features from on-chip memory to DDR. 
+
+Each CALC  instrcution,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism with $Para_{height}$ lines form $ Para_{in} $ input channels to $ Para_{out}$ output channels. $Para_{height}$, $ Para_{in} $ and $ Para_{out} $ are the parallelism along the height, input channel and output channel dimensions, which is constrained by the hardware.
+
+\Cref{fig:singlesave}(a) illustrates the operation of CALC instructions. The convolution of the last $ Para_{in} $ input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions for the same output channels, as well as the LOAD instructions for corresponding input featuremaps and weights, are considered as a \textbf{CalcBlob}. In each CalcBlob, there is a LOAD\_W instruction for the corresponding weights. However, as the input data can be shared across different CalcBlobs, some CalcBlobs do not have  LOAD\_D instruction. 
+
+% Each CALC  instrcution,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism.
+% Each CALC instruction, including CALC\_I and CALC\_F processes the convolution from input feature of the hardware input parallelism ($Para_{in}$) to the output feature of the hardware output parallelism ($ Para_{out}$), as illustrated in \Cref{fig:singlesave}(a). The convolution of the last input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions to generate the output channels, as well as the LOAD instructions for corresponding input featuremaps and weights are considered as a \textbf{CalcBlob}. Besides the convolution, some other operations like pooling is also represented in the CALC\_F instruction.
+
+% Considerring to the limited on-chip data memory, the on-chip data buffer may not able to store all of the input and output featuremaps. To solve this problem, a CALC instruction is not designed for the entile featuremap, yet servel lines of the featuremap. The parallelism along the height dimension of a CALC instruction is denoted as  
+
+
+
 \begin{table*}[t]
 	\footnotesize
 	\centering
@@ -35,36 +56,10 @@
 
 
 
-In this section, we introduce the concept of interrupt to CNN accelerator to support multi-task execution. To minimize the interrupt response latency and extra cost for interrupt, we propose the virtual-instruction-based accelerator interrupt method.
+% \subsection{Accelerator Interrupt }
 
-\subsection{ Instruction Driven Accelerator }
-
-There are three categories of instruction in the instruction-driven accelerator: LOAD, CALC, and SAVE \cite{guo2017angel, yu2018instruction}. The instruction description of each kind of instruction are listed in \Cref{fig:instructions}(a) and \Cref{tab:instr}.
-
-The LOAD instruction moves input featuremaps and weights from DDR to on-chip memory. The SAVE instruction moves the calculated output features from on-chip memory to DDR. 
-
-Each CALC  instrcution,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism with $Para_{height}$ lines form $ Para_{in} $ input channels to $ Para_{out}$ output channels. $Para_{height}$, $ Para_{in} $ and $ Para_{out} $ are the parallelism along the height, input channel and output channel dimensions, which is constrained by the hardware.
-
-\Cref{fig:singlesave}(a) illustrates the operation of CALC instructions. The convolution of the last $ Para_{in} $ input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions for the same output channels, as well as the LOAD instructions for corresponding input featuremaps and weights, are considered as a \textbf{CalcBlob}. In each CalcBlob, there is a LOAD\_W instruction for the corresponding weights. However, as the input data can be shared across different CalcBlobs, some CalcBlobs do not have  LOAD\_D instruction. 
-
-% Each CALC  instrcution,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism.
-% Each CALC instruction, including CALC\_I and CALC\_F processes the convolution from input feature of the hardware input parallelism ($Para_{in}$) to the output feature of the hardware output parallelism ($ Para_{out}$), as illustrated in \Cref{fig:singlesave}(a). The convolution of the last input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions to generate the output channels, as well as the LOAD instructions for corresponding input featuremaps and weights are considered as a \textbf{CalcBlob}. Besides the convolution, some other operations like pooling is also represented in the CALC\_F instruction.
-
-% Considerring to the limited on-chip data memory, the on-chip data buffer may not able to store all of the input and output featuremaps. To solve this problem, a CALC instruction is not designed for the entile featuremap, yet servel lines of the featuremap. The parallelism along the height dimension of a CALC instruction is denoted as  
-
-
-
-\subsection{Accelerator Interrupt}
-
-In order to support multi-task scheduling, interrupt is introduced in CPU \cite{jen1974processor}. 
-In CPU, when a high-priority task requires an interrupt, the hardware or the interrupt handler software back up all the registers to main memory.
-After the high-priority task is completed, the backed-up registers will be recovered to CPU hardware. 
-
-% If the CNN accelerator supports interrupt, it can run two or more CNN modules at the same time. 
-\Cref{fig:interDPR} illustrates the idea of interrupt to schedule two CNN tasks. In the process of running a low-priority network (PR), the software may send an execution request for the high-priority task (FE). The interrupt enables the CNN accelerator to backup the running state of previous task low-priority PR network, and then execute the high-priority FE network. When the high-priority task (FE) is complete, the low-priority task (PR) is restored to the accelerator and continues to execute.
-With the help of accelerator interrupt, the execution of the low-priority task (PR) is divided into pieces, and each piece is allocated to the time interval of running the high-priority networks (FE). 
-Accelerator interrupt multiplexes the time division of the accelerator, reduces the idle time of the accelerator, and improves the utilization of hardware resources. 
-
+\subsection{How To Interrupt: Virtual Instruction}
+\label{sec:howinter}
 There are different methods to implement interrupt in CNN accelerators.
 
 \textbf{CPU-Like.}
@@ -75,8 +70,6 @@ Most accelerators run the CNN layer by layer \cite{qiu2016going,guo2017angel}. W
 
 The latency to response the interrupt and the performance degradation of the CPU-like interrupt and Layer-by-layer method will be evaluated in \Cref{sec:experiments}.
 
-\subsection{How To Interrupt: Virtual Instruction}
-\label{sec:howinter}
 
 We propose the \textbf{virtual-instruction-based} method to enable low-latency interrupt. Different from the CPU-like interrupt, which backup/recovery all the on-chip caches, only the on-chip cache which is still needed in future execution will be backed-up and restored. So that the amount of data transfer is much lower than that of CPU-like interrupt.
 
@@ -111,23 +104,15 @@ By adding the virtual instructions, the CNN can be interrupted anywhere, and the
 % There is a field in the instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution.
 
 
+
+
+
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=0.99\linewidth]{fig/instructions.png}
 	\caption{The origin instruction set for CNN accelerator }
 	\label{fig:instructions}
 \end{figure}
-
-\begin{figure*}[t]
-	\centering
-	\includegraphics[width=0.99\linewidth]{fig/interDPR.pdf}
-    \caption{Interruption to solve the hardware resources conflicts.  
-    % When a high-priority task (FE) is started before the low-priority task (PR) is completed, the CNN accelerator backs up the status of PR to memory, and processes the FE task. When the high-priority task is completed, the low-priority task resumes and continues.
-    }
-	\label{fig:interDPR}
-\end{figure*}
-
-
 
 
 
@@ -192,7 +177,7 @@ Additional virtual instructions also take up bandwidth at instruction fetching p
 
 
 
-\subsection{Virtual Instruction ISA }
+\subsection{Virtual Instruction ISA (VI-ISA) }
 \label{sec:virtualinstr}
 
 We add two fields to the instruction set: 1) Virtual and 2) SaveID, as illustrated in \Cref{fig:instructions}(b). 

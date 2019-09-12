@@ -1,6 +1,17 @@
 
 \label{sec:relate}
 
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.99\linewidth]{fig/interDPR.pdf}
+    \caption{Interruption to solve the hardware resources conflicts.  
+    % When a high-priority task (FE) is started before the low-priority task (PR) is completed, the CNN accelerator backs up the status of PR to memory, and processes the FE task. When the high-priority task is completed, the low-priority task resumes and continues.
+    }
+	\label{fig:interDPR}
+\end{figure*}
+
+
 \subsection{ CNN-based FE and PR }
 
 \textbf{\quad \ Feature-point extraction:} Previous feature-point extraction works usually consist of two parts: 1) feature-point detection and 2) descriptors generation.
