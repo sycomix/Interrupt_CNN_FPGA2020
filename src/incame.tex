@@ -1,14 +1,14 @@
 \label{sec:incame}
 
-In this section, we firstly give a brief introduction to ROS\cite{quigley2009ros}. To solve the hardware resources conflicts in ROS, we propose the INCMAE framework for ROS softwares to access the CNN accelerator.
+In this section, we firstly give a brief introduction to ROS\cite{quigley2009ros}. To solve the hardware resources conflicts when the ROS softwares access the CNN accelerator, we propose the INCMAE framework.
 
 
 
 
 \subsection{Introduction to ROS}
-Building a real robot requires many different components, including sensors, perception algorithms and control units from different developers. The Robot Operating System (ROS) \cite{quigley2009ros} is proposed to fuse the components from different researchers into a practical system. ROS is a popular framework for developing robot, which provides programming specifications and a communication interface.
+Building a real robot requires many different components, including sensors, perception algorithms, and control units from different developers. The Robot Operating System (ROS) \cite{quigley2009ros} is proposed to fuse the components from different researchers into a practical system. ROS is a popular framework for developing a robot, which provides programming specifications and a communication interface.
 
-Each function module in ROS, such as FE,PR,VO is called a \textbf{Node}. Each node is an independent thead running on CPU, and  do not konw the running status of others. Different nodes communicate with others by \textbf{ROS topics}. A node can publish some topics and subscribe some topic. The publishing and subscribing nodes connect to the same topic, and neither node needs to know whether the other exists. The subscriber processes the received topics through callback functions. The code example is shown in \Cref{code:FE}, line 17,18 bind the topics (InputFrame) with the callback functions (FEcallback to extract the feature-points). Line 13 initializes the accelerator for the node. Line5 runs the tasks on the accelerator. Different nodes in ROS initialize and run the CNN accelerator independently, which may result in hardware resources conflicts.
+Each function module, such as FE, PR, and VO is called a \textbf{Node} in ROS. Each node is an independent thread running on CPU, and does not know the running status of others. Different nodes communicate with others by \textbf{ROS topics}. A node can publish some topics and subscribe to some topics. The publishing and subscribing nodes connect to the same topic, and neither node needs to know whether the other exists. The subscribing node processes the received topics with callback functions. The code example is shown in \Cref{code:FE}, line 17,18 bind the topics (InputFrame) with the callback functions (FEcallback to extract the feature-points). 
 
 
 % The publishing node is called publisher, the subscribing node is called subscriber.
@@ -23,9 +23,9 @@ Each function module in ROS, such as FE,PR,VO is called a \textbf{Node}. Each no
 \subsection{Hardware Resources Conflicts in ROS}
 
 Although ROS is now becoming the fundamental software platform for robotics, the independence between different ROS nodes brings \textbf{hardware resources conflicts challenge} to access the hardware accelerator. 
-Because developers cannot predict the running state of the CNN accelerator when they write programs, the accelerator may be occupied by other threads when a ROS node needs to call the accelerator.
+Because developers cannot predict the running state of the CNN accelerator when they write programs, the accelerator may be occupied by other threads when a ROS node needs to call the accelerator. In \Cref{code:FE}, line 13 initializes the accelerator for the node. Line 5 runs the CNN backbone on the accelerator. Different nodes in ROS initialize and run the CNN accelerator independently, which may result in hardware resources conflicts.
 
-To address this problem, we set the priorities of different tasks at the initialization phase (the {\color{red}priority} parameter in  \Cref{code:FE} line, and enable the accelerator interrupt to schedule the high-priority task firstly.
+To address this problem, we set the priorities of different tasks at the initialization phase (the {\color{red}priority} parameter in  \Cref{code:FE} line 13, and enable the accelerator interrupt to schedule the high-priority task firstly.
 
 % The run-time status of the CNN accelerator is not predictable when developers writing the program. Line 13 in ROSExample1 and line 9 in ROSExample2 initialize the DPU for each task. Line5 in ROSExample1 an d line 3 in ROSExample2 run the tasks on the same CNN accelerator, which may result in hardware conflicts. In INCAME, the priorities of different tasks are configured at initialization phase to address the hardware conflicts problem.
 
@@ -82,7 +82,7 @@ To address this problem, we set the priorities of different tasks at the initial
 
 \subsection{ Accelerator interrupt to solve Hardware Resources Conflicts }
 
-In order to support multi-task scheduling and solve the hardware resources conflicts, interrupt is introduced in CPU \cite{jen1974processor}. 
+In order to support multi-task scheduling and solve the hardware resources conflicts, interrupt is introduced to CPU \cite{jen1974processor}. In this paper, we also use the concept of interrupt to support multi-task on the accelerator.
 
 
 % If the CNN accelerator supports interrupt, it can run two or more CNN modules at the same time. 
@@ -106,7 +106,7 @@ Accelerator interrupt multiplexes the time division of the accelerator, reduces 
 The first step is the task decomposition, which decomposes the computation in ROS nodes into different INCAME computation types, including CNN backbones, CNN post-processing, and other CPU tasks. 
 
 The second step is to deploy different computation on FPGA. 
-The CNN backbones of  different task, such as the VGG model \cite{kim2016accurate} in SupoerPoint feature-point extraction \cite{detone2018superpoint} and the ResNet101 model \cite{he2016deep} in GEM place recognition \cite{radenovic2018fine}, are compiled to the interruptible virtual-instruction instruction set architecture (VI-ISA). 
+The CNN backbones of  different task, such as the VGG model \cite{kim2016accurate} in SupoerPoint feature-point extraction \cite{detone2018superpoint} and the ResNet101 model \cite{he2016deep} in GeM place recognition \cite{radenovic2018fine}, are compiled to the interruptible virtual-instruction instruction set architecture (VI-ISA). 
 The interruptible CNN accelerator runs the instructions.
 To accelerate the post-processing operations of the CNN based methods, hardware modules are implemented for the CPU-intensive Softmax \cite{Softmax-wiki} and Normalization operations \cite{Norm}. Some task-related software optimizations, such as Ranking and NMS \cite{NeubeckGool-NMS}, are processed in the CPU side of the embedded MPSoC\cite{MPSoC}.
 Other tasks written in C++/Python run directly also on the CPU side.

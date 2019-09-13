@@ -38,7 +38,7 @@ In this paper, we optimize the scheduling of PR(\textcircled{2}) and the VO (\te
 
 Recent works use CNN to extract feature-points \cite{detone2018superpoint, simo2015discriminative, yi2016lift} and generate the representation code \cite{arandjelovic2016netvlad, radenovic2018fine}. 
 The CNN-based feature-point extraction method, SuperPoint \cite{detone2018superpoint}, achieves 10\%-30\% higher matching accuracy compared with the popular handcrafted extraction method, ORB\cite{Mur-Artal:2017281}.
-The accuracy of the representation code from another CNN-based method, GEM \cite{radenovic2018fine}, is also about 20\% better than the handcrafted method, rootSIFT \cite{jegou2014triang}.
+The accuracy of the representation code from another CNN-based method, GeM \cite{radenovic2018fine}, is also about 20\% better than the handcrafted method, rootSIFT \cite{jegou2014triang}.
 
 % Thus, we adopt these CNN methods to realize Feature-point Extraction and  Place Recognition. 
 Therefore, CNN is increasingly used in robotic systems. 
@@ -74,9 +74,9 @@ Therefore, the FPGA accelerator should be scheduled dynamically to support irreg
 
 \textbf{Scheduling by priority:} Different components own different priorities. The control and perception tasks usually have higher priorities, while the long-term decision and optimization have lower priorities \cite{RamsauerKLM17}. The critical tasks, which are latency-sensitive,  need to be processed firstly on the accelerator.
 
-The concept of interrupt \cite{jen1974processor} is introduced to CPU in the 1960s, enabling the CPU to support dynamic multi-thread scheduling by priority, thus satisfying these three features on CPU. Therefore, we introduce the concept of interrupt to the CNN accelerator in this paper.
+The concept of interrupt \cite{jen1974processor} is introduced to CPU in the 1960s, enabling the CPU to support dynamic multi-task scheduling by priority, thus satisfying these three features on CPU. Therefore, we introduce the concept of interrupt to the CNN accelerator in this paper to support multi-task on FPGA based accelerators.
 
-Besides the CNN backbone, the post-processing of the CNN-based methods, including normalization, softmax, rank, etc., are also computation consuming. As illustrated in \Cref{fig:overalltime}, the execution time of post-processing for FE on embedded CPU (~60ms) exceeds that of CNN backbone on the accelerator (30ms), and becomes the bottleneck of the system.
+Besides the CNN backbones, the post-processing of the CNN-based methods, including normalization, softmax, rank, etc., are also computation consuming. As illustrated in \Cref{fig:overalltime}, the execution time of post-processing for FE on embedded CPU (~60ms) exceeds that of CNN backbone on the accelerator (30ms), and becomes the bottleneck of the system.
 
 To address the above challenges, we propose an INterruptible CNN Accelerator for Multi-robot Exploration (INCAME) for rapid deployment of MR-Exploration on FPGA, with the following contributions:
 
@@ -84,7 +84,7 @@ To address the above challenges, we propose an INterruptible CNN Accelerator for
     % \begin{itemize}[leftmargin = 10 pt]
 % \item We propose a CNN-based MR-Exploration framework based on FPGA. The hardware and software modules in INCAME is designed for ROS \cite{quigley2009ros}, so that the modules can be easily used in other applications.
 \item We propose a CNN-based MR-Exploration framework, INCAME. CNN-based methods for feature-point extraction (FE) and place recognition (PR) are accelerated with FPGA on ROS platform\cite{quigley2009ros}. With the help of the unified interface in ROS, these CNN-based methods can be easily used by other developers in different applications.
-\item We propose a \textbf{virtual-instruction-based} interrupt method to make the CNN accelerator support dynamic multi-thread scheduling by priority. The method solves the hardware resources conflicts when accelerating different CNN tasks on ROS.
+\item We propose a \textbf{virtual-instruction-based} interrupt method to make the CNN accelerator support dynamic multi-task scheduling by priority. The method solves the hardware resources conflicts when accelerating different CNN tasks on ROS.
 \item We optimize the data flow of the post-processing operations. Hardware modules are also designed for the optimized post-processing. This software-hardware co-optimization makes the MR-Exploration real-time.
 \end{itemize}
 
