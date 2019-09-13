@@ -6,29 +6,26 @@ In this section, we firstly give a brief introduction to ROS\cite{quigley2009ros
 
 
 \subsection{Introduction to ROS}
-Building a real robot requires many different components, including sensors, perception algorithms and control units from different developers. The Robot Operating System (ROS) \cite{quigley2009ros} is proposed to fuse the components from different researchers into a practical system. ROS is a popular framework for developing robot, which provides programming specifications and a communication interface. Node and Topic are the basic elements in ROS.
+Building a real robot requires many different components, including sensors, perception algorithms and control units from different developers. The Robot Operating System (ROS) \cite{quigley2009ros} is proposed to fuse the components from different researchers into a practical system. ROS is a popular framework for developing robot, which provides programming specifications and a communication interface.
 
-\textbf{Node.} Each function module in ROS, such as FE,PR,VO is called a node. Each node is an independent thead running on CPU, and  do not konw the running status of others.
-
-\textbf{Topic.} Different nodes communicate with others by topics. A node can publish some topics and subscribe some topic. The publishing node is called publisher, the subscribing node is called subscriber.
-
-\textbf{Publisher.} When the output of a publisher node is ready, the output data are inmediately packaged to the topic and published. ROS provides some system publisher, such as cv\_camera \cite{cvcamera} to read the camera and publish the input frames to a ROS topic.
-
-\textbf{Subscriber.} The subscriber processes received topics through \textbf{callback} functions. Each callback function is bound to a topic. When the topic receives data, the callback function executed to process the data. If the callback function cannot complete before receiving the new data, the newly received data will be discarded.
-
-The publisher and the subscriber are independent and communicate with each other only through topics. They do not even know if another one exists. 
-The code examples in shown in \Cref{code:FE} and \Cref{code:PR}. line 17,18 in \Cref{code:FE} and line 12,13 in \Cref{code:PR} bind the topics with the callback functions.
+Each function module in ROS, such as FE,PR,VO is called a \textbf{Node}. Each node is an independent thead running on CPU, and  do not konw the running status of others. Different nodes communicate with others by \textbf{ROS topics}. A node can publish some topics and subscribe some topic. The publishing and subscribing nodes connect to the same topic, and neither node needs to know whether the other exists. The subscriber processes the received topics through callback functions. The code example is shown in \Cref{code:FE}, line 17,18 bind the topics (InputFrame) with the callback functions (FEcallback to extract the feature-points). Line 13 initializes the accelerator for the node. Line5 runs the tasks on the accelerator. Different nodes in ROS initialize and run the CNN accelerator independently, which may result in hardware resources conflicts.
 
 
+% The publishing node is called publisher, the subscribing node is called subscriber.
 
-Line 13 in \Cref{code:FE} and line 9 in \Cref{code:PR} initialize the accelerator for each task. Line5 in \Cref{code:FE} an d line 3 in ROSExample2 run the tasks on the same CNN accelerator respectively, which may result in hardware conflicts. 
+% \textbf{Publisher.} When the output of a publisher node is ready, the output data are inmediately packaged to the topic and published. ROS provides some system publisher, such as cv\_camera \cite{cvcamera} to read the camera and publish the input frames to a ROS topic.
+
+% \textbf{Subscriber.} The subscriber processes received topics through \textbf{callback} functions. Each callback function is bound to a topic. When the topic receives data, the callback function executed to process the data. If the callback function cannot complete before receiving the new data, the newly received data will be discarded.
+
+
+ 
 
 \subsection{Hardware Resources Conflicts in ROS}
 
 Although ROS is now becoming the fundamental software platform for robotics, the independence between different ROS nodes brings \textbf{hardware resources conflicts challenge} to access the hardware accelerator. 
-Because developers cannot predict the running state of the CNN accelerator when they write programs, the accelerator may be occupied by other threads when a ROS node needs to call the accelerator. Line 13 in \Cref{code:FE} and line 9 in \Cref{code:PR} initialize the same accelerator for each task. Line5 in \Cref{code:FE} and line 3 in \Cref{code:PR} run the tasks on the same CNN accelerator, which may result in hardware conflicts.
+Because developers cannot predict the running state of the CNN accelerator when they write programs, the accelerator may be occupied by other threads when a ROS node needs to call the accelerator.
 
-To address this problem, we set the priorities of different tasks at the initialization phase (the {\color{red}priority} parameter in  \Cref{code:FE} line 13 and \Cref{code:PR} line 9 ), and enable the accelerator interrupt to schedule the high-priority task firstly.
+To address this problem, we set the priorities of different tasks at the initialization phase (the {\color{red}priority} parameter in  \Cref{code:FE} line, and enable the accelerator interrupt to schedule the high-priority task firstly.
 
 % The run-time status of the CNN accelerator is not predictable when developers writing the program. Line 13 in ROSExample1 and line 9 in ROSExample2 initialize the DPU for each task. Line5 in ROSExample1 an d line 3 in ROSExample2 run the tasks on the same CNN accelerator, which may result in hardware conflicts. In INCAME, the priorities of different tasks are configured at initialization phase to address the hardware conflicts problem.
 
@@ -61,27 +58,27 @@ To address this problem, we set the priorities of different tasks at the initial
     \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
-    \caption{ ROS Node for PR }
-    \label{code:PR}
-    \begin{algorithmic}[1]
-        \Function {PRcallback}{$ InputKeyFrame $}
-        \State {\color{blue} *imagePtr  $\gets$ *InputKeyFrame }
-        \State DPUtask.run()
-        \State PRBackend.run()
-        \EndFunction
+% \begin{algorithm}[t]
+%     \caption{ ROS Node for PR }
+%     \label{code:PR}
+%     \begin{algorithmic}[1]
+%         \Function {PRcallback}{$ InputKeyFrame $}
+%         \State {\color{blue} *imagePtr  $\gets$ *InputKeyFrame }
+%         \State DPUtask.run()
+%         \State PRBackend.run()
+%         \EndFunction
 
-        \Function {Main}{$ $}
-        \State imagePtr, imageAddr = ScratchPad(PRinputsize)
-        \State fmPtr, fmAddr = ScratchPad(PRfmsize)
-        \State DPUtask = PR\_DPUinit( {\color{red} priority=1},{\color{blue} instraddr=PRinstrAddr}, 
-        \State \qquad \qquad \qquad \quad {\color{blue} inoffset=imageAddr,outoffset=fmAddr } ) 
-        \State PRBackend = PRBackendinit({\color{blue}fmAddr, fmPtr});
-        \State Subscriber = Node.subscribe( InputKeyFrameTopic, PRcallback);
-        \State Subscriber.spin();
-        \EndFunction
-    \end{algorithmic}
-\end{algorithm}
+%         \Function {Main}{$ $}
+%         \State imagePtr, imageAddr = ScratchPad(PRinputsize)
+%         \State fmPtr, fmAddr = ScratchPad(PRfmsize)
+%         \State DPUtask = PR\_DPUinit( {\color{red} priority=1},{\color{blue} instraddr=PRinstrAddr}, 
+%         \State \qquad \qquad \qquad \quad {\color{blue} inoffset=imageAddr,outoffset=fmAddr } ) 
+%         \State PRBackend = PRBackendinit({\color{blue}fmAddr, fmPtr});
+%         \State Subscriber = Node.subscribe( InputKeyFrameTopic, PRcallback);
+%         \State Subscriber.spin();
+%         \EndFunction
+%     \end{algorithmic}
+% \end{algorithm}
 
 \subsection{ Accelerator interrupt to solve Hardware Resources Conflicts }
 
