@@ -108,7 +108,7 @@ The first step is the task decomposition, which decomposes the computation in RO
 The second step is to deploy different computation on FPGA. 
 The CNN backbones of  different task, such as the VGG model \cite{kim2016accurate} in SupoerPoint feature-point extraction \cite{detone2018superpoint} and the ResNet101 model \cite{he2016deep} in GEM place recognition \cite{radenovic2018fine}, are compiled to the interruptible virtual-instruction instruction set architecture (VI-ISA). 
 The interruptible CNN accelerator runs the instructions.
-To accelerate the post-processing operations of the CNN based methods, hardware modules are implemented for the CPU-intensive Softmax and Normalization operations [??]. Some task-related software optimizations, such as Ranking and NMS [??], are processed in the CPU side of the embedded MPSoC\cite{MPSoC}.
+To accelerate the post-processing operations of the CNN based methods, hardware modules are implemented for the CPU-intensive Softmax \cite{Softmax-wiki} and Normalization operations \cite{Norm}. Some task-related software optimizations, such as Ranking and NMS \cite{NeubeckGool-NMS}, are processed in the CPU side of the embedded MPSoC\cite{MPSoC}.
 Other tasks written in C++/Python run directly also on the CPU side.
 
 To eliminate the memory copy between CPU cores and CNN accelerators, we use low-latency ScratchPad memory \cite{Banakar2002Scratchpad} to directly feed the results from CNN backbones to the post-processing modules. Each shared date in ScratchPad memory is initialized with two handlers: 1) a pointer (Ptr) for the CPU thread and 2) the physical address for the hardware modules. Blue lines in  ROSExample 1,2 illustrate the usage for the ScratchPad memory.
