@@ -5,7 +5,7 @@
 
 % \begin{figure*}[t]
 % 	\centering
-% 	\includegraphics[width=0.9\linewidth]{fig/interDPR.eps}
+% 	\includegraphics[width=0.99\linewidth]{fig/interDPR.eps}
 % 	\caption{Interruption to solve the hardware resources conflicts.  When a high-priority task (FE) is started before the low-priority task (PR) is completed, the CNN accelerator backs up the status of PR to memory, and processes the FE task. When the high-priority task is completed, the low-priority task resumes and continues.
 %     }
 % 	\label{fig:interDPR}
@@ -115,7 +115,10 @@ Virtual LOAD instructions also need to restore the intermediate results from par
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.9\linewidth]{fig/instructions.png}
+    \vspace{-0.1cm} 
+    \setlength{\abovecaptionskip}{0cm} 
+    \setlength{\belowcaptionskip}{-0.05cm} 
+	\includegraphics[width=0.99\linewidth]{fig/instructions.png}
 	\caption{Original and Virtual-Instruction ISA.}
 	\label{fig:instructions}
 \end{figure}
@@ -177,7 +180,7 @@ In order to minimize the cost of interrupt, we make the CNN interruptible after 
     \vspace{-0.1cm} 
     \setlength{\abovecaptionskip}{0cm} 
     \setlength{\belowcaptionskip}{-0.05cm} 
-	\includegraphics[width=0.9\linewidth]{fig/iau.pdf}
+	\includegraphics[width=0.99\linewidth]{fig/iau.pdf}
 	\caption{Hardware Architecture of IAU. 
 	% The software on the CPU (PS side) communicates with IAU to access the CNN accelerator. IAU records the running state of each task. At runtime, IAU translates the input instruction sequence with virtual instructions to a normal sequence of instructions. IAU also modifies the normal SAVE instruction after interrupt occurs with the same SaveID, to avoid duplicate output data transfer. 
 	}
