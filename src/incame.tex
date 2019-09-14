@@ -82,12 +82,12 @@ To address this problem, we set the priorities of different tasks at the initial
 
 \subsection{ Accelerator interrupt to solve Hardware Resources Conflicts }
 
-In order to support multi-task scheduling and solve the hardware resources conflicts, interrupt is introduced to CPU \cite{jen1974processor}. In this paper, we also use the concept of interrupt to support multi-task on the accelerator.
+In order to support multi-task scheduling and solve the hardware resources conflicts, interrupt is introduced to CPU \cite{jen1974processor}. In this paper, we also use the concept of interrupt to support multi-task on the CNN accelerator.
 
 
 % If the CNN accelerator supports interrupt, it can run two or more CNN modules at the same time. 
-\Cref{fig:interDPR} illustrates the idea of interrupt to schedule two CNN tasks. In the process of running a low-priority network (PR), the software may send an execution request for the high-priority task (FE). The interrupt enables the CNN accelerator to backup the running state of previous task low-priority PR network, and then execute the high-priority FE network. When the high-priority task (FE) is complete, the low-priority task (PR) is restored to the accelerator and continues to execute.
-With the help of accelerator interrupt, the execution of the low-priority task (PR) is divided into pieces, and each piece is allocated to the time interval of running the high-priority networks (FE). 
+\Cref{fig:interDPR} illustrates the idea of interrupt to schedule two CNN tasks. In the process of running a low-priority network (PR), the software may send an execution request for the high-priority task (FE). The interrupt enables the CNN accelerator to backup the running state of the low-priority PR network. And then the accelerator executes the high-priority FE network. When the high-priority task (FE) is complete, the low-priority task (PR) is restored to the accelerator and continues to execute.
+With the help of accelerator interrupt, the execution of the low-priority task (PR) is divided into pieces, and each piece is allocated to the time interval of running different high-priority networks (FE). 
 Accelerator interrupt multiplexes the time division of the accelerator, reduces the idle time of the accelerator, and improves the utilization of hardware resources. 
 
 
@@ -102,19 +102,19 @@ Accelerator interrupt multiplexes the time division of the accelerator, reduces 
 
 % We try to use CNN as much as possible to accomplish various tasks on the robot. Because the CNN not only has advantages over traditional algorithms in accuracy, but also has uniform and regular computing mode. Therefore, a single instruction-driven CNN accelerator can speed up different tasks. The unified accelerator can reduce the use of hardware resources and make it easier to implement the robot computing system on embedded FPGA.
 
-\Cref{fig:incame}(b) illustrates the proposed two-step INCAME framework to mapping ROS based softwares to embedded FPGA.
+\Cref{fig:incame}(b) illustrates the proposed two-step INCAME framework for mapping ROS based softwares to embedded FPGA.
 The first step is the task decomposition, which decomposes the computation in ROS nodes into different INCAME computation types, including CNN backbones, CNN post-processing, and other CPU tasks. 
 
-The second step is to deploy different computation on FPGA. 
-The CNN backbones of  different task, such as the VGG model \cite{kim2016accurate} in SupoerPoint feature-point extraction \cite{detone2018superpoint} and the ResNet101 model \cite{he2016deep} in GeM place recognition \cite{radenovic2018fine}, are compiled to the interruptible virtual-instruction instruction set architecture (VI-ISA). 
-The interruptible CNN accelerator runs the instructions.
-To accelerate the post-processing operations of the CNN based methods, hardware modules are implemented for the CPU-intensive Softmax \cite{Softmax-wiki} and Normalization operations \cite{Norm}. Some task-related software optimizations, such as Ranking and NMS \cite{NeubeckGool-NMS}, are processed in the CPU side of the embedded MPSoC\cite{MPSoC}.
-Other tasks written in C++/Python run directly also on the CPU side.
+The second step is to deploy the computation onto the FPGA. 
+The CNN backbones of different tasks, such as the VGG model \cite{kim2016accurate} in SupoerPoint feature-point extraction \cite{detone2018superpoint} and the ResNet101 model \cite{he2016deep} in GeM place recognition \cite{radenovic2018fine}, are compiled to the interruptible Virtual-Instruction Instruction Set Architecture (VI-ISA). 
+At runtime, the interruptible CNN accelerator runs these instructions to calculate the CNN backbones.
+To accelerate the post-processing operations of the CNN based methods, hardware modules are implemented for the CPU-intensive Softmax \cite{Softmax-wiki} and Normalization \cite{Norm}. Some task-related software optimizations, such as Ranking and Non Maximum Suppression (NMS) \cite{NeubeckGool-NMS}, are processed on the CPU side of the embedded MPSoC\cite{MPSoC}.
+Other ROS tasks written in C++/Python run directly on the CPU side.
 
-To eliminate the memory copy between CPU cores and CNN accelerators, we use low-latency ScratchPad memory \cite{Banakar2002Scratchpad} to directly feed the results from CNN backbones to the post-processing modules. Each shared date in ScratchPad memory is initialized with two handlers: 1) a pointer (Ptr) for the CPU thread and 2) the physical address for the hardware modules. Blue lines in  ROSExample 1,2 illustrate the usage for the ScratchPad memory.
+To eliminate the memory copy between CPU cores and CNN accelerators, we use low-latency ScratchPad memory \cite{Banakar2002Scratchpad} to directly feed the results from CNN backbones to the post-processing modules. Each shared date in ScratchPad memory is initialized with two handlers: 1) a pointer (Ptr) for the CPU thread and 2) the physical address for the hardware modules. Blue lines in \Cref{code:FE} illustrate the usage for the ScratchPad memory.
 
-\Cref{fig:incame}(a) details the INCAME compilation step and runtime interrupt. Caffe \cite{jia2014caffe} is a popular software framework for CNN, and the *.caffemodel/*.prototxt files define the network parameters and structure in Caffe. The pervious network deploy flow in Angel-Eye \cite{guo2017angel} quantizes the weights, and analysis the network topology. The original compiler in Angel-Eye translates the network topology and the quantization infomation into the original ISA sequence. INCAME compiler goes further than Angel-Eye. It select the optimized interrupt position in the original instruction flow, and adds virtual instructions at the interruptible position to enable accelerator interrupt. After that, the original instruction sequence and the added virtual instructions are wrapped to the new interruptible Virtual-Intruction ISA (VI-ISA). The wrapped VI-ISA instructions are dumped into a file (instruction.bin), and can be loaded into the instruction spaces on FPGA's DDR.
+\Cref{fig:incame}(a) details the INCAME compilation step and runtime interrupt. CAFFE \cite{jia2014caffe} is a popular software framework for CNN, and the *.caffemodel/*.prototxt files define the network parameters and structure in CAFFE. The previous deployment process in Angel-Eye \cite{guo2017angel} quantizes the weights, and analysis the network topology. The original compiler in Angel-Eye translates the network topology and the quantization information into the original ISA sequence \cite{guo2017angel}. INCAME compiler goes further than Angel-Eye. It selects the optimized interrupt positions in the original instruction sequence, and adds virtual instructions at these positions to enable accelerator interrupt. After that, the original instruction sequence and the added virtual instructions are wrapped to the new interruptible Virtual-Instruction ISA (VI-ISA). The wrapped VI-ISA instructions are dumped into a file (instruction.bin), and can be loaded into the instruction spaces on FPGA's DDR.
 
-At runtime, an instruction arrangement unit (IAU) in hardware listens to the interrupt request from softwares, fetches the corresponding VI-ISA interruptible instructions and translates them to the original ISA executed on the CNN accelerator. 
+At runtime, an instruction arrangement unit (IAU) in hardware listens to the interrupt request from ROS softwares, fetches the corresponding VI-ISA interruptible instructions and translates them to the original ISA executed on the CNN accelerator in Ange-Eye \cite{guo2017angel}. 
 
 The detail of the Virtual-Instruction ISA (VI-ISA) and instruction arrangement unit (IAU) is introduced in \Cref{sec:cnninterrupt}.
