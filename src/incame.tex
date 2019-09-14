@@ -28,9 +28,8 @@ The subscribing node processes the received topics with callback functions. The 
 \subsection{Hardware Resources Conflicts in ROS}
 
 Although ROS is now becoming the fundamental software platform for robotics, the independence between different ROS nodes brings \textbf{hardware resources conflicts challenge} to access the hardware accelerator. 
-Because developers cannot predict the running state of the CNN accelerator when they write programs, the accelerator may be occupied by other threads when a ROS node needs to call the accelerator. In \Cref{code:FE}, line 13 initializes the accelerator for the node. Line 5 runs the CNN backbone on the accelerator. Different nodes in ROS initialize and run the CNN accelerator independently, which may result in hardware resources conflicts.
-
-To address this problem, we set the priorities of different tasks at the initialization phase (the {\color{red}priority} parameter in  \Cref{code:FE} line 13, and enable the accelerator interrupt to schedule the high-priority task firstly.
+% Because developers cannot predict the running state of the CNN accelerator when they write programs, the accelerator may be occupied by other threads when a ROS node needs to call the accelerator. 
+In \Cref{code:FE}, line 13 initializes the accelerator for the node. Line 5 runs the CNN backbone on the accelerator. Different nodes in ROS initialize and run the CNN accelerator independently, which may result in hardware resources conflicts. To address this problem, we set the priorities of different tasks at the initialization phase (the {\color{red}priority} parameter in  \Cref{code:FE} line 13, and enable the accelerator interrupt to schedule the high-priority task firstly.
 
 % The run-time status of the CNN accelerator is not predictable when developers writing the program. Line 13 in ROSExample1 and line 9 in ROSExample2 initialize the DPU for each task. Line5 in ROSExample1 an d line 3 in ROSExample2 run the tasks on the same CNN accelerator, which may result in hardware conflicts. In INCAME, the priorities of different tasks are configured at initialization phase to address the hardware conflicts problem.
 
@@ -91,14 +90,14 @@ To address this problem, we set the priorities of different tasks at the initial
 
 
 % If the CNN accelerator supports interrupt, it can run two or more CNN modules at the same time. 
-\Cref{fig:interDPR} illustrates the idea of interrupt to schedule two CNN tasks. In the process of running a low-priority network (PR), the software may send an execution request for the high-priority task (FE). The interrupt enables the CNN accelerator to backup the running state of the low-priority PR network. And then the accelerator executes the high-priority FE network. When the high-priority task (FE) is complete, the low-priority task (PR) is restored to the accelerator and continues to execute.
-With the help of accelerator interrupt, the execution of the low-priority task (PR) is divided into pieces, and each piece is allocated to the time interval of running different high-priority networks (FE). 
-Accelerator interrupt multiplexes the time division of the accelerator, reduces the idle time of the accelerator, and improves the utilization of hardware resources. 
+\Cref{fig:interDPR} illustrates the idea of interrupt to schedule two CNN tasks. In the process of running a low-priority network (PR), the software may send an execution request for the high-priority task (FE). The interrupt enables the CNN accelerator to backup the running state of the low-priority PR network. And then the accelerator switches to the high-priority FE network. After the high-priority task (FE) completes, the low-priority task (PR) is restored to the accelerator and continues to execute.
+% With the help of accelerator interrupt, the execution of the low-priority task (PR) is divided into pieces, and each piece is allocated to the time interval of running different high-priority networks (FE). 
+% Accelerator interrupt multiplexes the time division of the accelerator, reduces the idle time of the accelerator, and improves the utilization of hardware resources. 
 
 
 \begin{figure*}[t]
 	\centering
-    \includegraphics[width=0.99\linewidth]{fig/incame.pdf}
+    \includegraphics[width=0.9\linewidth]{fig/incame.pdf}
     \caption{ INCAME framework.}
 	\label{fig:incame}
 \end{figure*}
@@ -111,10 +110,10 @@ Accelerator interrupt multiplexes the time division of the accelerator, reduces 
 The first step is the task decomposition, which decomposes the computation in ROS nodes into different INCAME computation types, including CNN backbones, CNN post-processing, and other CPU tasks. 
 
 The second step is to deploy the computation onto the FPGA. 
-The CNN backbones of different tasks, such as the VGG model \cite{kim2016accurate} in SupoerPoint feature-point extraction \cite{detone2018superpoint} and the ResNet101 model \cite{he2016deep} in GeM place recognition \cite{radenovic2018fine}, are compiled to the interruptible Virtual-Instruction Instruction Set Architecture (VI-ISA). 
-At runtime, the interruptible CNN accelerator runs these instructions to calculate the CNN backbones.
-To accelerate the post-processing operations of the CNN based methods, hardware modules are implemented for the CPU-intensive Softmax \cite{Softmax-wiki} and Normalization \cite{Norm}. Some task-related software optimizations, such as Ranking and Non Maximum Suppression (NMS) \cite{NeubeckGool-NMS}, are processed on the CPU side of the embedded MPSoC\cite{MPSoC}.
-Other ROS tasks written in C++/Python run directly on the CPU side.
+The CNN backbones of different tasks, such as the VGG model \cite{kim2016accurate} in SupoerPoint feature-point extraction \cite{detone2018superpoint} and the ResNet101 model \cite{he2016deep} in GeM place recognition \cite{radenovic2018fine}, are compiled to the interruptible Virtual-Instruction Instruction Set Architecture (VI-ISA), which runs on the CNN accelerator.
+% At runtime, the interruptible CNN accelerator runs these instructions to calculate the CNN backbones.
+% To accelerate the post-processing operations of the CNN based methods, 
+Hardware modules are implemented for the CPU-intensive Softmax \cite{Softmax-wiki} and Normalization \cite{Norm}. Some task-related software optimizations, such as Ranking and Non Maximum Suppression (NMS) \cite{NeubeckGool-NMS}, as well as other ROS tasks written in C++/Python, are processed on the CPU side.
 
 To eliminate the memory copy between CPU cores and CNN accelerators, we use low-latency ScratchPad memory \cite{Banakar2002Scratchpad} to directly feed the results from CNN backbones to the post-processing modules. Each shared date in ScratchPad memory is initialized with two handlers: 1) a pointer (Ptr) for the CPU thread and 2) the physical address for the hardware modules. Blue lines in \Cref{code:FE} illustrate the usage for the ScratchPad memory.
 
