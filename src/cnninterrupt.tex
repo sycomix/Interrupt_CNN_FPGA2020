@@ -214,11 +214,10 @@ For Multiple Blob Save, virtual SAVE and LOAD instructions are generated after t
 A specific hardware module called Instruction Arrangement Unit (IAU) is designed to handle the computing requirements from different tasks with different priorities. The IAU monitors the interrupt status, and generates a simple instruction sequence dynamically. The decoder, controller, processing elements in the CNN accelerator does not need to know the interrupt status, but only operate the instructions provided by IAU.
 
 The hardware implementation of IAU is shown in \Cref{fig:IAU}, which supports four tasks with different priorities. Task 0 has the highest priority and is not interruptible. 
-
 InstrAddr records the address to fetch the instructions of the corresponding task. The InputOffset and the OutputOffset are configured by the software, which indicate base address offsets of the input and output data. 
 SaveID, SaveAddr, and SaveLength record the backup status when an interrupt occurs. 
 Subsequent not-virtual SAVE instructions will be modified according to the interrupt status recorded, to avoid duplicate output data transfer.
-An example of the instruction modification will be given at \Cref{sec:exampleVirtual}.
+% An example of the instruction modification will be given at \Cref{sec:exampleVirtual}.
 
 
 \subsection{Example of Viutual Instruction}
