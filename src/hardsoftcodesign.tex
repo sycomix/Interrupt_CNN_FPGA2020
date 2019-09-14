@@ -103,7 +103,7 @@ Since we only need to find the $k$ feature-points with maximum  confidence witho
 
 % In our expetiments, $N_{nms} \approx 2000$ and $k = 200$. The number of comparisons is reduced by $1.4\times$.
 
-\subsection{Normalization Optimization}
+\subsection{Optimization of Descriptors Generation}
 
 The input of the descriptor head sized $\mathbb{R}^{H_c\times W_c\times D}$ is semi-dense descriptor that each $8\times8$ pixel cell has a descriptor. In the original implementation, a bicubic interpolation and normalization yields fine descriptors of size $\mathbb{R}^{H\times W\times D}$. Then, according to the result of the rank, the descriptors corresponding to the k feature points are combined into a list and output. When using maximum point softmax, each $8\times8$ pixel cell only has a potential feature-point. So we can use semi-dense descriptor as the dense descriptor of the potential feature-point and do not need bi-cubic interpolation.
 
