@@ -9,7 +9,10 @@ PR module generates the compact image representation, which produces the candida
 In this paper, we optimize the scheduling of PR(\textcircled{2}) and the VO (\textcircled{3}) based on the feature-points (\textcircled{1}), across the CPU side (processing system, PS) and FPGA side (programmable logic, PL), on Xilinx MPSoC \cite{MPSoC}.
 
 \begin{figure}[t]
-	\centering
+    \centering
+    \vspace{-0.1cm} 
+    \setlength{\abovecaptionskip}{0cm} 
+    \setlength{\belowcaptionskip}{-0.05cm} 
 	\includegraphics[width=0.99\linewidth]{fig/maexp.pdf}
     \caption{
         The components in MR-Exploration. \textcircled{1}\textcircled{3} are basic for a single robot, should be execute every frame. \textcircled{2} generates representation code for some key frames. \textcircled{4}\textcircled{5} are only executed when representation codes are matched across robots and they are latency tolerant.  \textcircled{6}\textcircled{7} are for decision and navigation, also latency tolerant.
@@ -29,6 +32,9 @@ In this paper, we optimize the scheduling of PR(\textcircled{2}) and the VO (\te
 \begin{figure*}[t]
     % \flushleft
     \centering
+    \vspace{-0.1cm} 
+    \setlength{\abovecaptionskip}{0cm} 
+    \setlength{\belowcaptionskip}{-0.05cm} 
 	\includegraphics[width=0.99\textwidth]{fig/overalltime.pdf} 	
     \caption{
     The overall timeline of MR-Exploration.

@@ -125,6 +125,9 @@ Virtual LOAD instructions also need to restore the intermediate results from par
 \begin{figure*}[t]
     % \flushleft
     \centering
+    \vspace{-0.1cm} 
+    \setlength{\abovecaptionskip}{0cm} 
+    \setlength{\belowcaptionskip}{-0.05cm} 
 	\includegraphics[width=0.9\textwidth]{fig/singlesave.pdf} 	
     \caption{
 		Scheduling Illustration
@@ -171,6 +174,9 @@ In order to minimize the cost of interrupt, we make the CNN interruptible after 
 
 \begin{figure}[t]
 	\centering
+    \vspace{-0.1cm} 
+    \setlength{\abovecaptionskip}{0cm} 
+    \setlength{\belowcaptionskip}{-0.05cm} 
 	\includegraphics[width=0.9\linewidth]{fig/iau.pdf}
 	\caption{Hardware Architecture of IAU. 
 	% The software on the CPU (PS side) communicates with IAU to access the CNN accelerator. IAU records the running state of each task. At runtime, IAU translates the input instruction sequence with virtual instructions to a normal sequence of instructions. IAU also modifies the normal SAVE instruction after interrupt occurs with the same SaveID, to avoid duplicate output data transfer. 
@@ -179,6 +185,9 @@ In order to minimize the cost of interrupt, we make the CNN interruptible after 
 \end{figure}
 \begin{figure*}[t]
 	\centering
+    \vspace{-0.1cm} 
+    \setlength{\abovecaptionskip}{0cm} 
+    \setlength{\belowcaptionskip}{-0.05cm} 
 	\includegraphics[width=0.95\linewidth]{fig/interexample.pdf}
 	\caption{ A simple example of accelerator interrupt based on Virtual Instruction. }
 	\label{fig:interexample}
@@ -197,8 +206,10 @@ The virtual instructions should be only valid when interrupt occurs. So we add a
 % \begin{itemize}
 
 	\textbf{2'b00} indicates this instruction is not virtual, should always be executed.
+	
 	\textbf{2'b01} indicates this instruction is the SAVE instruction for backup. When an interrupt occurs, the high-priority network will start after this instruction.
-    \textbf{2'b10} indicates this instruction is the LAOD instruction for recovery. The corresponding instructions will be executed after the high-priority network.
+	
+	\textbf{2'b10} indicates this instruction is the LAOD instruction for recovery. The corresponding instructions will be executed after the high-priority network.
 % \end{itemize}
 
 \subsubsection{ SaveID Filed }
