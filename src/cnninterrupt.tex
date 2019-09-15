@@ -220,7 +220,7 @@ We add two fields to the instruction set: 1) Virtual and 2) SaveID, as illustrat
 SaveID links CalcBlob instructions to the corresponding SAVE. SaveID of each not-virtual SAVE instruction differs. If the generated outputs of CalcBlobs are stored to DDR by a SAVE instruction, the CalcBlobs have the same SaveID as the SAVE instruction.
 
 % The SaveID for a CalcBlob is the same as its CALC\_F instruction.
-One SAVE instruction may correspond to one CalcBlob ( \textbf{Single Blob Save}, illustrated in \Cref{fig:singlesave}(b) ) or multiple CalcBlobs (\textbf{Multiple Blob Save}, illustrated in \Cref{fig:singlesave}(c)).
+One SAVE instruction may correspond to one CalcBlob ( \textit{Single Blob Save}, illustrated in \Cref{fig:singlesave}(b) ) or multiple CalcBlobs (\textit{Multiple Blob Save}, illustrated in \Cref{fig:singlesave}(c)).
 
 For Single Blob Save, no virtual SAVE is added. The high-priority network can be started after the nomal not-virtual SAVE. The virtual LOAD instructions for data recovery are generated after the normal SAVE, and executed after the high-priority network. The execution timeline is shown in \Cref{fig:singlesave}(d).
 
@@ -243,9 +243,9 @@ Subsequent not-virtual SAVE instructions will be modified according to the recor
 \label{sec:exampleVirtual}
 
 
-The example is based on a straightforward convolutional layer, which has only one input channel and two output channel. 
+The example is based on a straightforward convolutional layer, which has only one input channel and two output channels. 
 The convolution kernel size is $1 \times 1$. The shape of the input and output featuremaps is $ 2 \times 16 $ (\Cref{fig:interexample}(a) ). The parallelism of the CALC instruction in this example is $ Para_{in} = 1$,$ Para_{out}=1$,$Para_{height}=2$.
 
-Thus, the two output channels are calculated by two CALC\_F instructions ( instruction 3 and 7 ). The addresses used in the instruction example are listed in \Cref{fig:interexample}(b). \Cref{fig:interexample}(c) is the instruction sequence from DDR with VI-ISA. \Cref{fig:interexample}(d) is the executed instructions without interrupt. When an interrupt occurs at the first CalcBlob, \Cref{fig:interexample}(e) illustrated the backup and recovery instructions (Blue) and the modified SAVE instruction (Red).
+Thus, the two output channels are calculated by two CALC\_F instructions ( instruction 3 and 7 ). The addresses used in the instruction example are listed in \Cref{fig:interexample}(b). \Cref{fig:interexample}(c) is the instruction sequence from DDR with VI-ISA. \Cref{fig:interexample}(d) is the executed instructions without interrupt. When an interrupt occurs at the first CalcBlob, \Cref{fig:interexample}(e) illustrates the backup/recovery instructions (Blue) and the modified SAVE instruction (Red).
 
 % The hardware implementation of IAU is shouwn in \Cref{{fig:IAU}. There is a Status Pool which records the running states of each task. The InstrAddr is records the instruction address of each CNN

@@ -15,11 +15,12 @@ In this section, the evaluation of the instruction-based-interruption, hardware 
 
 \subsection{ Experiment Setup }
 
-The hardware-in-loop evaluate environment is illustrated in \Cref{fig:env}(a). There is a simulation server provides the simulation environment based on a AirSim \cite{shah2018airsim}, which is a high-fidelity visual and physical simulation for autonomous vehicles. The AirSim simulation server provides the camera data for each agents. Two Xilinx ZCU102 board \cite{zcu102}, with ZU9 MPSoC \cite{MPSoC}, are responsible for the calculation of each agent. 
-The components in \Cref{fig:maexp} for each agent are implemented in the ZCU102 board. TThe implementation of the FE(\textcircled{1} in \Cref{fig:maexp}, SuperPoint\cite{detone2018superpoint}) and PR (\textcircled{2} in \Cref{fig:maexp}, GeM \cite{radenovic2018fine}) modules are introduced in former sections. 
-The VO module (\textcircled{3}) in the experiment is the PnP \cite{LepetitMoreno-Noguer-EPnP} method, which is widely used in the feature-point based VO, including the open source the ORB-SLAM \cite{Mur-Artal:2017281}. 
+The hardware-in-loop evaluate environment is illustrated in \Cref{fig:env}(a). There is a simulation server providing the simulation environment based on a AirSim \cite{shah2018airsim}, which is a high-fidelity visual and physical simulation for autonomous vehicles. The AirSim simulation server provides the camera data for each agents. Two Xilinx ZCU102 board \cite{zcu102}, with ZU9 MPSoC \cite{MPSoC}, are responsible for the calculation of each agent. 
+The components in \Cref{fig:maexp} for each agent are implemented in the ZCU102 board. The implementation of the FE(\textcircled{1} in \Cref{fig:maexp}, SuperPoint\cite{detone2018superpoint}) and PR (\textcircled{2} in \Cref{fig:maexp}, GeM \cite{radenovic2018fine}) modules are introduced in former sections. 
+The VO module (\textcircled{3}) in the experiment is the PnP \cite{LepetitMoreno-Noguer-EPnP} method, which is widely used in the feature-point based VO. 
+% including the open source the ORB-SLAM \cite{Mur-Artal:2017281}. 
 The Dopt module (\textcircled{4}) are proposed in \cite{Choudhary:2017e66} and also used in former distributed SLAM system\cite{cieslewski2018data}. 
-The Map Merging \cite{Andre2014} (\textcircled{5}), Exploration \cite{8202319} (\textcircled{6}), Navigation \cite{tbd} (\textcircled{7}) in this work are provided by the ROS framework. 
+The Map Merging \cite{Andre2014} (\textcircled{5}), Exploration \cite{8202319} (\textcircled{6}) and Navigation \cite{tbd} (\textcircled{7}) in this work are provided by the ROS framework. 
 
 The hardware resources is listed in \Cref{tab:hardware}. The CNN backbone is calculated by the Angel-Eye CNN accelerator\cite{guo2017angel}, which is a hardware IP implemented on the FPGA side of ZCU102 (Programmable logic, PL side). The FE post-processing steps run on our proposed accelerators, also on the PL side. The PL side has 2 clock frequencies. The CNN accelerator is running at 300MHz. The accelerator for FE post-processing are running at 200MHz.
 
@@ -33,7 +34,7 @@ The hardware resources is listed in \Cref{tab:hardware}. The CNN backbone is cal
   \hline
         & $\sharp$ DSP & $\sharp$ LUT & $\sharp$ FF & $\sharp$ BRAM \\
   \hline
-  On-Board Resource &   2520   &  274080      &  548160     & 912 \\
+  On-Board resource &   2520   &  274080      &  548160     & 912 \\
   \hline
   CNN accelerator &   1282   &  74569      &   171416    & 499 \\
   \hline
@@ -68,7 +69,7 @@ The cost of CPU-like interrupt is the data transfer time of all the on-chip cach
 
 % For a precise evaluation the CNN run time, we record the clock cycles of the beginning and end of each instruction. The time of the interrupt response latency and the total cost in the following evaluation is calculated from the clock cycles and the clock frequence.
 
-The CNN backbone of the interruptible PR is ResNet101 \cite{he2016deep}, wich contains 101 convolution layers. The input shapee of the PR CNN is $480 \times 640 \times 3$. The parallelism of the Angel-Eye is $Para_{height}=8$, $Para_{in}=16$, $Para_{out}=16$, i.e. each CALC instruction processes 8 lines from 16 input channe to 16 output channels. 
+The CNN backbone of the interruptible PR is ResNet101 \cite{he2016deep}, which contains 101 convolution layers. The input shapee of the PR CNN is $480 \times 640 \times 3$. The parallelism of the Angel-Eye is $Para_{height}=8$, $Para_{in}=16$, $Para_{out}=16$, i.e. each CALC instruction processes 8 lines from 16 input channels to 16 output channels. 
 
 We randomly sample 12 positions of the ResNet101 CNN backbone. The interrupt response latency and the extra time cost for different implementation of interrupt at the positions are listed in \Cref{fig:scatter1024}.
 
@@ -81,7 +82,7 @@ We randomly sample 12 positions of the ResNet101 CNN backbone. The interrupt res
 % The 'Serial' row is the baseline for executing the two tasks in serial without interrupt. 
 % In serial execution, backup/recovery of data is not required. The 'CPU-like' row is the estimated result of backup/recovery all the on-chip caches for immediately interruption. The 'Pose 1,2,3' rows are the results of the DPU interrupted at different  PR positions. 'Pose 1' represents the first layers of PR network, the numbers of input channel and output channel are both $64$. The input and output shapes are both $240 \times 320$. 'Pose 2' represents the layers with moderate number of channels ($ 512 $) and data shapes ($ 60 \times 80 $). 'Pose 3' represents the last layers with many channels ($ 2048 $) and small featuremaps ($ 15 \times 20$).
 
-The CPU-like interrupt consumes the most perform degradation. Though the layer-by-layer consumes no extra time, the latency is much higher than our virtual-instruction-based interrupt. 
+The CPU-like interrupt consumes the most extra cost ($t_{cost}$). Though the layer-by-layer consumes no extra time, the latency is much higher than our virtual-instruction-based interrupt. 
 This is because the layer-by-layer interrupt need to wait for completion of a layer. The performance at same interrupt position in our proposed virtual interrupt can interrupt inside a layer, with lower latency.
 
 
@@ -224,10 +225,10 @@ We are here to reminder the readers that the processing of the low-priority PR t
 
 \subsection{ FE Evaluation }
 
-We evaluate the performance of the SuperPoint network in VO on the $TUM$ dataset. We evaluate SuperPoint against two well-known handcrafted FE systems: SIFT\cite{Lowe-478} and ORB\cite{Mur-Artal:2017281}. 
+We evaluate the performance of the SuperPoint network in VO on the $TUM$ dataset\cite{sturm12iros}. We evaluate SuperPoint against two well-known handcrafted FE systems: SIFT\cite{Lowe-478} and ORB\cite{Mur-Artal:2017281}. 
 We also evaluate the performance after optimization. 
 % We compute a maximum of 200 points for all systems at a $480\times640$ resolution and set $NMS=4$. 
-We perform nearest neighbor matching from descriptors in adjacent frames with a maximum allowable distance $d_m$. $d_m$ is not same in three FE systems because descriptors differs. In PS side, we use an OpenCV implementation (solvePnP()) with all the matches to compute the transform matrix \cite{LepetitMoreno-Noguer-EPnP}, and use Bundle Adjustment to optimize results \cite{TriggsMclauchlan-Bundle-Adjustment}. 
+We perform nearest neighbor matching from descriptors in adjacent frames with a maximum allowable distance $d_m$. $d_m$ is not same in three FE systems because descriptors differs. In PS side, we use an OpenCV implementation (solvePnP()) with all the matches to compute the transform matrix \cite{LepetitMoreno-Noguer-EPnP}, and use Bundle Adjustment (BA) to optimize results \cite{TriggsMclauchlan-Bundle-Adjustment}. 
 % All the computation of this experiment is all done on the CPU except CNN of SuperPoint. 
 
 Results are shown in \Cref{tab:VO}. In terms of accuracy, SuperPoint outperforms ORB and performs comparably to SIFT. Optimization, including fixed-point quantization and post-processing acceleration, does not introduce a large loss of accuracy. 
@@ -288,6 +289,6 @@ We compare the running time of each operation in SuperPoint post-processing befo
 % \vspace*{-2mm}
 \subsection{ ROS based MR-Exploration }
 
-The results of the Multi-Robot Exploration based on our INCAME is shown in \Cref{fig:env}. The space in the AirSim for the robots to explore is shown in \Cref{fig:env}(a). It is a simple rectangle area with four different pillars, and some chairs at the center (in the white box).  \Cref{fig:env}(b) shows how PR works for map maerging. The FE and VO on each agent produce the local map and trajectory on each ZCU102 board. When the PR threads on different agents find out a similar scene. The relative pose of the two agents at the similar scene are calculated. The map and the trajectory is merged with the calculated relative pose, as shown in \Cref{fig:env}(c).
+The results of the Multi-Robot Exploration based on our INCAME is shown in \Cref{fig:env}. The space in the AirSim for the robots to explore is shown in \Cref{fig:env}(a). It is a simple rectangle area with four different pillars, and some chairs at the center (in the white box).  \Cref{fig:env}(b) shows how PR works for map merging. The FE and VO of each agent produce the local map and trajectory on each ZCU102 board. When the PR threads on different agents find out a similar scene, the relative pose of the two agents at the similar scene is calculated. The map and the trajectory is merged with the calculated relative pose, as shown in \Cref{fig:env}(c).
 
-In this example, the FE and PR are both executed on the same Angel-Eye accelerator. The frequence of the input camera is 20fps, and each input frame is fed to the FE, and FE module would take up accelerator. While the CPU process VO with the feature-points from FE, the accelerator can switch to process the low-priority PR task. Because the executing time of VO varies, the time to finish a PR task is different. In this example, the time from the begin a PR to its end is 320~500 ms. Thus, the PR samples one frame from every 7$\sim$10 frames.
+In this example, the FE and PR are both executed on the same Angel-Eye accelerator. The frequence of the input camera is 20fps, and each input frame is fed to the FE, and FE module would take up accelerator. While the CPU process VO with the feature-points from FE, the accelerator can switch to process the low-priority PR task. Because the executing time of VO varies, the time to finish a PR task is different. In this example, the time from the begin a PR to its end is 320~500 ms. Thus, the PR process one key frame from every 7$\sim$10 input frames.
