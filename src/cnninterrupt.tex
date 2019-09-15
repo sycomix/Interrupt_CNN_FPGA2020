@@ -21,7 +21,7 @@ There are three categories of instruction in the instruction-driven accelerator:
 
 The LOAD instruction moves input featuremaps and weights from DDR to on-chip memory. The SAVE instruction moves the calculated output features from on-chip memory to DDR. 
 
-Each CALC  instruction,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism with $Para_{height}$ lines form $ Para_{in} $ input channels to $ Para_{out}$ output channels. $Para_{height}$, $ Para_{in} $ and $ Para_{out} $ are the parallelism along the height, input channel and output channel dimensions, which is determined by the hardware and original ISA.
+Each CALC  instruction,  including CALC\_I and CALC\_F processes the convolution according to the hardware parallelism with $Para_{height}$ lines from $ Para_{in} $ input channels to $ Para_{out}$ output channels. $Para_{height}$, $ Para_{in} $ and $ Para_{out} $ are the parallelism along the height, input channel and output channel dimensions, which is determined by the hardware and original ISA.
 
 \Cref{fig:singlesave}(a) illustrates the operation of CALC instructions. The convolution of the last $ Para_{in} $ input channels is CALC\_F, and the convolutions for the former input channels are CALC\_I. The CALC\_F and the CALC\_I instructions for the same output channels, as well as the LOAD instructions for corresponding input featuremaps and weights, are considered as a \textbf{CalcBlob}  (\Cref{sec:exampleVirtual}(c) lists an example for CalcBlob). In each CalcBlob, there is a LOAD\_W instruction for the corresponding weights. However, as the input data can be shared across different CalcBlobs, some CalcBlobs do not have  LOAD\_D instruction. 
 
@@ -44,7 +44,7 @@ Each CALC  instruction,  including CALC\_I and CALC\_F processes the convolution
 	\multirow{2}[4]{*}{LOAD} & LOAD\_W & Load weights/bias from DDR to on chip weight buffer. & Off-chip Addr & Weights-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
 	\cline{2-9}\multicolumn{1}{|c|}{} & LOAD\_D & Load input data from DDR to on-chip data buffer. & Off-chip Addr & Data-buffer Addr & -     & Data  Length & -     & Weight / Inputdata \bigstrut\\
 	\hline
-	\multirow{2}[4]{*}{CALC} & CALC\_I & Calculate intermediate results (from partial input channels) for some output channels from partial  input channels. & Input  Data Addr & Intermediate Data Addr & Weight Addr & Calc Size & Previous final results / Intemediate data  & Weight / Inputdata /  intemediate data \bigstrut\\
+	\multirow{2}[4]{*}{CALC} & CALC\_I & Calculate intermediate results (from partial input channels) for some output channels from partial  input channels. & Input  Data Addr & Intermediate Data Addr & Weight Addr & Calc Size & Previous final results / Intemediate data  & Weight / Inputdata /  Intemediate data \bigstrut\\
 	\cline{2-9}\multicolumn{1}{|c|}{} & CALC\_F & Calculate the results for some output channels from all input channels. The pooling, bias-adding and elementwise operations are operated in this instructions. & Input  Data Addr & Output  Data Addr & Weight Addr & Calc Size & Finial results & Inputdata \bigstrut\\
 	\hline
 	SAVE  & SAVE  & Save the results from on-chip data buffer to DDR. & Off-chip Addr & Data-buffer Addr & -     & Data  Length & -     & Inputdata \bigstrut\\
@@ -60,17 +60,20 @@ Each CALC  instruction,  including CALC\_I and CALC\_F processes the convolution
 
 \subsection{How To Interrupt: Virtual Instruction}
 \label{sec:howinter}
+
+There four stages to handle interrupt. For the instruction flow illustrated in \Cref{fig:singlesave}(c). The interrupt stages are shown in \Cref{fig:singlesave}(e), including (1) the time for finishing the current operation $t1$. (2) the time to backup the status $t2$. (3) the time for the high-priority task $t3$. (4) the time to restore the low-priority task $t4$. The the latency to respond the interrupt is $t_{latency} = t1+t2$. The extra cost for interrupt is $t_{cost}=t2+t4$. 
+
 There are different methods to implement interrupt in CNN accelerators.
 
 \textbf{CPU-Like.}
 When an interrupt request occurs in CPU, CPU backs up all the on-chip registers to DDR. However, there are only tens of registers in CPU, and the volumn of the backed-up data is less than 1 KB \cite{furber2000arm}. In CNN accelerators, there are hundreds of KB ~ several MB on-chip caches \cite{qiu2016going, guo2017angel} to store input featuremaps or weights. 
 % If all on-chip caches are backed-up/recovered, the cost of data transfer in the accelerator is much higher than that of CPU. 
-Thus, the extra data transfer increases the latency of CPU-like interrupt responce and the additional cost.
+Thus, the extra data transfer increases both the interrupt response latency($t_{latency}$) and the additional cost ($t_{cost}$).
 
 \textbf{Layer-by-layer.}
 Most accelerators run the CNN layer by layer \cite{qiu2016going,guo2017angel}. 
-There is no extra data transfer for the accelerator to switch between different task after each layer.
-However, the position of the interrupt request is irregular and unpredictable. When an interrupt occurs inside a CNN layer, the CNN accelerator needs to finish the whole layer before switching, which leads to the high latency to respond the interrupt.
+There is no extra data transfer for the accelerator to switch between different task after each layer, thus, $t_{cost}=0$. 
+However, the position of the interrupt request is irregular and unpredictable. When an interrupt occurs inside a CNN layer, the CNN accelerator needs to finish the whole layer before switching, which leads to the high ($t_{latency}$).
 
 % The latency to respond the interrupt and the performance degradation of the CPU-like interrupt and Layer-by-layer method will be evaluated in \Cref{sec:experiments}.
 
@@ -117,8 +120,8 @@ Virtual LOAD instructions also need to restore the intermediate results from par
 	\centering
     \vspace{-0.1cm} 
     \setlength{\abovecaptionskip}{0cm} 
-    \setlength{\belowcaptionskip}{-0.05cm} 
-	\includegraphics[width=0.99\linewidth]{fig/instructions.png}
+    \setlength{\belowcaptionskip}{-1cm} 
+	\includegraphics[width=0.9\linewidth]{fig/instructions.png}
 	\caption{Original and Virtual-Instruction ISA.}
 	\label{fig:instructions}
 \end{figure}
@@ -131,7 +134,7 @@ Virtual LOAD instructions also need to restore the intermediate results from par
     \vspace{-0.1cm} 
     \setlength{\abovecaptionskip}{0cm} 
     \setlength{\belowcaptionskip}{-0.05cm} 
-	\includegraphics[width=0.9\textwidth]{fig/singlesave.pdf} 	
+	\includegraphics[width=0.99\textwidth]{fig/singlesave.pdf} 	
     \caption{
 		Scheduling Illustration
     }
@@ -191,7 +194,7 @@ In order to minimize the cost of interrupt, we make the CNN interruptible after 
     \vspace{-0.1cm} 
     \setlength{\abovecaptionskip}{0cm} 
     \setlength{\belowcaptionskip}{-0.05cm} 
-	\includegraphics[width=0.95\linewidth]{fig/interexample.pdf}
+	\includegraphics[width=0.90\linewidth]{fig/interexample.pdf}
 	\caption{ A simple example of accelerator interrupt based on Virtual Instruction. }
 	\label{fig:interexample}
 \end{figure*}
@@ -212,7 +215,7 @@ The virtual instructions should be only valid when interrupt occurs. So we add a
 	
 	\textbf{2'b01} indicates this instruction is the SAVE instruction for backup. When an interrupt occurs, the high-priority network will start after this instruction.
 	
-	\textbf{2'b10} indicates this instruction is the LAOD instruction for recovery. The corresponding instructions will be executed after the high-priority network.
+	\textbf{2'b10} indicates this instruction is the LOAD instruction for recovery. The corresponding instructions will be executed after the high-priority network.
 % \end{itemize}
 
 \subsubsection{ SaveID Filed }
