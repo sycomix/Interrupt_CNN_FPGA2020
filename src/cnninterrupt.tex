@@ -120,7 +120,7 @@ Virtual LOAD instructions also need to restore the intermediate results from par
 	\centering
     \vspace{-0.1cm} 
     \setlength{\abovecaptionskip}{0cm} 
-    \setlength{\belowcaptionskip}{-1cm} 
+    % \setlength{\belowcaptionskip}{-0.6cm} 
 	\includegraphics[width=0.9\linewidth]{fig/instructions.png}
 	\caption{Original and Virtual-Instruction ISA.}
 	\label{fig:instructions}
@@ -206,20 +206,17 @@ In order to minimize the cost of interrupt, we make the CNN interruptible after 
 
 We add two fields to the instruction set: 1) Virtual and 2) SaveID, as illustrated in \Cref{fig:instructions}(b). 
 
-\subsubsection{ Virtual Filed}
-
-The virtual instructions should be only valid when interrupt occurs. So we add a field in the origin instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. Three values can be set to Virtual Filed:
+\textbf{ $ \cdot $  Virtual Filed}. The virtual instructions should be only valid when interrupt occurs. So we add a field in the origin instruction set, that indicates whether the instruction a virtual instruction. If no interrupt occurs, virtual instructions will be skipped and discarded, which can ensure the efficiency of uninterrupted execution. Three values can be set to Virtual Filed:
 % \begin{itemize}
 
-	\textbf{2'b00} indicates this instruction is not virtual, should always be executed.
+	\textit{2'b00} indicates this instruction is not virtual, should always be executed.
 	
-	\textbf{2'b01} indicates this instruction is the SAVE instruction for backup. When an interrupt occurs, the high-priority network will start after this instruction.
+	\textit{2'b01} indicates this instruction is the SAVE instruction for backup. When an interrupt occurs, the high-priority network will start after this instruction.
 	
-	\textbf{2'b10} indicates this instruction is the LOAD instruction for recovery. The corresponding instructions will be executed after the high-priority network.
+	\textit{2'b10} indicates this instruction is the LOAD instruction for recovery. The corresponding instructions will be executed after the high-priority network.
 % \end{itemize}
 
-\subsubsection{ SaveID Filed }
-
+\textbf{ $ \cdot $ SaveID Filed }
 SaveID links CalcBlob instructions to the corresponding SAVE. SaveID of each not-virtual SAVE instruction differs. If the generated outputs of CalcBlobs are stored to DDR by a SAVE instruction, the CalcBlobs have the same SaveID as the SAVE instruction.
 
 % The SaveID for a CalcBlob is the same as its CALC\_F instruction.
