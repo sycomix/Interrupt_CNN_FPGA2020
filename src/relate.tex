@@ -22,7 +22,7 @@ SIFT \cite{Lowe-478}  detects and describes the feature-points. The SIFT descrip
 Recently, CNN is used to extract feature-point. \cite{simo2015discriminative} proposes a CNN-based descriptor generator that exceeds ORB in accuracy.
 DeTone \cite{detone2018superpoint} presents a fully CNN-based feature-point extraction method, SuperPoint, that implements feature-point detection and descriptors generation using one CNN network. SuperPoint\cite{detone2018superpoint} reaches 10\%-30\% higher matching accuracy compared the ORB based feature-point extraction \cite{Mur-Artal:2017281} and is used in this work.
 
-\textbf{Place recognition:} Before CNN-based place recognition, Bag of Words (BoW) \cite{small_1} relying on handcrafted features is the most popular method. The accuracy of BoW-based methods is strongly influenced by the codebook size ( descriptor length ). Larger codebooks (~1M) \cite{large_1, large_2} can compete with CNN-based methods in accuracy. However, they take up huge storage and communication resources. Smaller codebooks\cite{small_1, small_2, jegou2014triang} require less space but get worse results. In contrast to traditional methods, CNN-based methods not only perform well but also generate more compact features, saving the storage and communication resources. GeM \cite{radenovic2018fine} and NetVLAD \cite{arandjelovic2016netvlad} are popular CNN-based methods, for their accuracy and data efficiency. GeM \cite{radenovic2018fine}, is also 20\% better than the handcrafted method rootSIFT \cite{jegou2014triang}.
+\textbf{Place recognition:} Before CNN-based place recognition, Bag of Words (BoW) \cite{small_1} relying on handcrafted features is the most popular method. The accuracy of BoW-based methods is strongly influenced by the codebook size ( descriptor length ). Larger codebooks (1MB $\sim$ 10MB) \cite{large_1, large_2} can compete with CNN-based methods in accuracy. However, they take up huge storage and communication resources. Smaller codebooks\cite{small_1, small_2, jegou2014triang} require less space but get worse results. In contrast to traditional methods, CNN-based methods not only perform well but also generate more compact features, saving the storage and communication resources. GeM \cite{radenovic2018fine} and NetVLAD \cite{arandjelovic2016netvlad} are popular CNN-based methods, for their accuracy and data efficiency. GeM \cite{radenovic2018fine}, is also 20\% better than the handcrafted method rootSIFT \cite{jegou2014triang}.
 
 Due to the advantage of CNN in image-based tasks, more and more CNN-based methods are used in the robot system.
 
@@ -36,16 +36,15 @@ Fang \cite{fang2017fpga} directly implements ORB on FPGA using HLS. Liu \cite{li
 Some other works design architectures for the entire robot system. Hero \cite{shi2018hero} is a framework for navigation and laser-based robot and cannot support visual-based robots, which is much more lightweighted and cheaper. 
 Li \cite{li2019879gops} introduces CNN accelerators for the visual-based robot
 However, the CNN accelerator in this work\cite{li2019879gops} is only used for feature-point extraction, and the accelerator is not to support different tasks at the same time. 
-Deploying multiple CNNs on robotic accelerator can expand the functions of robots, without designing hardware for a specific function.
+Deploying multiple CNNs on robotic accelerator can expand the functions of robots, without designing hardware for specific functions.
 
 
 
 \subsection{ CNN accelerators }
 
 To accelerate CNN on FPGA, some previous works design frameworks to generate a specific hardware architecture for a target CNN, based on  RTL \cite{li_high_2016} or HLS \cite{lu_evaluating_2017}. These works need to reconfigure the FPGA to switch between different CNN models. The reconfiguration comsumes seconds \cite{FPGAPerformance}, which is unacceptable for the real time system.
-Some other works design instruction-driven accelerators \cite{yu2018instruction,qiu2016going,guo2017angel}, making rapid switching possible by providing different instruction sequences. 
+Some other works design instruction-driven accelerators \cite{yu2018instruction,qiu2016going,guo2017angel,dpu}, making rapid switching possible by providing different instruction sequences. 
 However, the CNN tasks on previous instruction-driven CNN accelerators are not interruptible, resulting in the latency-sensitive high-priority task waiting for the low-priority task to finish. 
-
 This inability of CNN accelerators to support multi-task makes it difficult for robotics researchers to use embedded FPGA.
 
 % However, previous instruction-driven CNN accelerators need to schedule the entire CNN, and can not automatically schedule two or more tasks simultaneously. The inability of CNN accelerators to support multi-task makes it difficult for robotics researchers to use embedded FPGA.

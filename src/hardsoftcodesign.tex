@@ -1,7 +1,7 @@
 \label{sec:hardsoftcodesign}
 \label{subsec:FEopt}
 
-The high-priority feature-point extraction (FE) task is latency sensitive and needs to be computed before the next picture arrives. With the help of the CNN accelerator, the latency of CNN backbone is reduced with 30ms. However, the  post-processing of FE consumes 50+ms, which becomes the bottleneck of real-time feature-point extraction. In this section, the software and hardware acceleration for CNN-based Feature-point Extraction (FE) is introduced.
+The high-priority feature-point extraction (FE) task is latency sensitive and needs to be computed before the next picture arrives. With the help of the CNN accelerator, the latency of CNN backbone is reduced and the real-time requirement is satisfied. However, the post-processing of FE on the embedded CPU consumes more than 50ms, which becomes the bottleneck of real-time feature-point extraction. In this section, the software and hardware acceleration for CNN-based Feature-point Extraction (FE) is introduced.
 
 
 \begin{figure}[t]
