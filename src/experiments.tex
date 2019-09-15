@@ -65,7 +65,7 @@ We evaluate the latency to response the interrupt and the performance degradatio
 
 The latency to response the interrupt in CPU-like interrupt includes the time to finish current executing instruction and the data backup time for the on-chip data/weights caches (totally 2.2MB). The latency in layer-by-layer interrupt is the time to finish current layer. The latency of our virtual-instruction-based method is the time to finish current executing instruction and the backup time for the calculated output results. 
 
-The cost of CPU-like interrupt is the data transfer time of all the on-chip caches (totally 2.2MB) to/from DDR. The cost of virtual-instruction-based method is the recovery of the input/weights from DDR to on-chip caches. There is no extra cost fot the layer-by-layer interrupt.
+The cost of CPU-like interrupt is the data transfer time of all the on-chip caches (totally 2.2MB) to/from DDR. The cost of virtual-instruction-based method is the recovery of the input/weights from DDR to on-chip caches. There is no extra cost for the layer-by-layer interrupt.
 
 % For a precise evaluation the CNN run time, we record the clock cycles of the beginning and end of each instruction. The time of the interrupt response latency and the total cost in the following evaluation is calculated from the clock cycles and the clock frequence.
 
